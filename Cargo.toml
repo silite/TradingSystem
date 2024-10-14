@@ -1,0 +1,19 @@
+[workspace]
+members = [
+  "core",
+  "strategy",
+  "backtest",
+  "error_handler",
+  "order_book",
+  "protocol",
+  "server",
+  "db",
+  "market_data",
+  "risk",
+  "execution"
+]
+[package]
+name    = "TradingSystem"
+version = "0.1.0"
+edition = "2021"
+[dependencies]
