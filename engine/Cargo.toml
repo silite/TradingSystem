@@ -1,0 +1,14 @@
+[package]
+name    = "engine"
+version = "0.1.0"
+edition = "2021"
+[dependencies]
+crossbeam      = { workspace = true }
+uuid           = { workspace = true }
+conf           = { path = "../conf" }
+protocol       = { path = "../protocol" }
+portfolio      = { path = "../portfolio" }
+derive_builder = { workspace = true }
+trader         = { path = "../trader" }
+market_feed    = { path = "../market_feed" }
+strategy       = { path = "../strategy" }

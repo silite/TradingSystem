@@ -1,0 +1,84 @@
+{
+    "folders": [
+        {
+            "name": "src",
+            "path": "src"
+        },
+        {
+            "name": "conf",
+            "path": "conf"
+        },
+        {
+            "name": "engine",
+            "path": "engine"
+        },
+        {
+            "name": "trader",
+            "path": "trader"
+        },
+        {
+            "name": "portfolio",
+            "path": "portfolio"
+        },
+        {
+            "name": "market_feed",
+            "path": "market_feed"
+        },
+        {
+            "name": "order_book",
+            "path": "order_book"
+        },
+        {
+            "name": "execution",
+            "path": "execution"
+        },
+        {
+            "name": "api",
+            "path": "api"
+        },
+        {
+            "name": "strategy",
+            "path": "strategy"
+        },
+        {
+            "name": "backtest",
+            "path": "backtest"
+        },
+        {
+            "name": "risk",
+            "path": "risk"
+        },
+        {
+            "name": "monitor",
+            "path": "monitor"
+        },
+        {
+            "name": "db",
+            "path": "db"
+        },
+        {
+            "name": "server",
+            "path": "server"
+        },
+        {
+            "name": "protocol",
+            "path": "protocol"
+        },
+        {
+            "name": "utils",
+            "path": "utils"
+        },
+        {
+            "name": "tests",
+            "path": "tests"
+        },
+        {
+            "name": "sh",
+            "path": "sh"
+        },
+        // {
+        //     "path": ".",
+        // }
+    ],
+    "settings": {}
+}

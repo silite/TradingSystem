@@ -1,19 +1,50 @@
 [workspace]
 members = [
-  "core",
+  "engine",
   "strategy",
   "backtest",
-  "error_handler",
   "order_book",
   "protocol",
   "server",
   "db",
-  "market_data",
+  "market_feed",
   "risk",
-  "execution"
+  "execution",
+  "portfolio",
+  "monitor",
+  "conf",
+  "tests",
+  "trader",
+  "utils",
+  "api"
 ]
 [package]
 name    = "TradingSystem"
 version = "0.1.0"
 edition = "2021"
+[workspace.dependencies]
+anyhow         = "1.0.89"
+chrono         = "0.4.38"
+crossbeam      = "0.8.4"
+ftlog          = "0.2.14"
+itertools      = "0.13.0"
+thiserror      = "1.0.64"
+uuid           = { version = "1.11.0", features = [ "v4" ] }
+tokio          = { version = "1.40.0", features = [ "macros", "rt", "rt-multi-thread" ] }
+derive_builder = "0.20.2"
+serde          = "1.0.210"
 [dependencies]
+tokio          = { workspace = true }
+anyhow         = { workspace = true }
+thiserror      = { workspace = true }
+uuid           = { workspace = true }
+derive_builder = { workspace = true }
+crossbeam      = { workspace = true }
+ftlog          = { workspace = true }
+engine         = { path = "engine" }
+conf           = { path = "conf" }
+protocol       = { path = "protocol" }
+portfolio      = { path = "portfolio" }
+trader         = { path = "trader" }
+market_feed    = { path = "market_feed" }
+strategy       = { path = "strategy" }
