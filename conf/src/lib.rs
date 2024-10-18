@@ -11,7 +11,10 @@ struct Cli {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Config {}
+pub struct Config {
+    pub clickhouse: String,
+    pub db_name: String,
+}
 
 fn init_config() -> anyhow::Result<Config> {
     let cli: Cli = Cli::parse();

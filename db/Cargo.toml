@@ -1,6 +1,11 @@
 [package]
-name = "db"
+name    = "db"
 version = "0.1.0"
 edition = "2021"
-
 [dependencies]
+conf       = { path = "../conf" }
+anyhow     = { workspace = true }
+serde      = { workspace = true }
+crossbeam  = { workspace = true }
+ftlog      = { workspace = true }
+clickhouse = { workspace = true }

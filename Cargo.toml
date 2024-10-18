@@ -33,6 +33,8 @@ uuid           = { version = "1.11.0", features = [ "v4" ] }
 tokio          = { version = "1.40.0", features = [ "macros", "rt", "rt-multi-thread" ] }
 derive_builder = "0.20.2"
 serde          = "1.0.210"
+yata           = "0.7.0"
+clickhouse     = "0.13.0"
 [dependencies]
 tokio          = { workspace = true }
 anyhow         = { workspace = true }

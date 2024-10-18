@@ -80,5 +80,9 @@
         //     "path": ".",
         // }
     ],
-    "settings": {}
+    "settings": {
+        "cSpell.words": [
+            "OHLCV"
+        ]
+    }
 }

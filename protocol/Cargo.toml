@@ -1,6 +1,7 @@
 [package]
-name = "protocol"
+name    = "protocol"
 version = "0.1.0"
 edition = "2021"
-
 [dependencies]
+yata       = { workspace = true }
+clickhouse = { workspace = true }

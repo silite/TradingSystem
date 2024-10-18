@@ -1,4 +1,5 @@
 use derive_builder::Builder;
+use protocol::portfolio::market_data::binance::Kline;
 
 use crate::MarketFeed;
 
@@ -6,9 +7,10 @@ use crate::MarketFeed;
 pub struct BinanceMarketFeed {}
 
 impl MarketFeed for BinanceMarketFeed {
-    type MarketData = ();
+    type MarketData = Kline;
 
-    type BundleData = ();
+    // TODO + ?
+    type BundleData = Kline;
 
     async fn load_history_market_data(&mut self, data: &Self::MarketData) -> anyhow::Result<()> {
         todo!()
