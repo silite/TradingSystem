@@ -4,6 +4,7 @@ use super::Indicator;
 
 const DEFAULT_LENGTH: u8 = 200;
 
+#[derive(Clone)]
 pub struct EMA {
     quote: yata::methods::EMA,
     data: f64,

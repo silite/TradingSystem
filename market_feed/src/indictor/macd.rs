@@ -5,6 +5,7 @@ use yata::{
 
 use super::Indicator;
 
+#[derive(Clone)]
 pub struct MACD {
     macd: yata::indicators::MACDInstance<MA>,
     data: (f64, f64),

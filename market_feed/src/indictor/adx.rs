@@ -5,6 +5,7 @@ use yata::{
 
 use super::Indicator;
 
+#[derive(Clone)]
 pub struct ADX {
     quote: AverageDirectionalIndexInstance,
     data: f64,

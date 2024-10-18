@@ -5,6 +5,7 @@ use yata::{
 
 use super::Indicator;
 
+#[derive(Clone)]
 pub struct RSI {
     quote: RelativeStrengthIndexInstance,
     data: f64,

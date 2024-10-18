@@ -18,6 +18,8 @@ pub trait MarketFeed {
     /// 行情 + 指标，TODO + ?
     type BundleData: OHLCV;
 
+    fn new() -> Self;
+
     /// 从头load所有历史行情，因为指标需要从头开始计算
     /// 这里优雅停机后，可以将需要的指标缓存，这样可以断点恢复
     /// 这里的数据不会保留在内存
@@ -30,8 +32,11 @@ pub trait MarketFeed {
     fn is_linked(&self) -> bool;
 
     /// 计算指标
-    fn computed_indicator(&mut self);
+    fn computed_indicator(&mut self, data: &Self::MarketData);
 
     /// 订阅最新据流，数据加载中时，会返回异常。
-    fn subscribe(&self) -> anyhow::Result<Self::BundleData>;
+    fn subscribe(
+        &mut self,
+        sender: crossbeam::channel::Sender<Self::BundleData>,
+    ) -> anyhow::Result<()>;
 }

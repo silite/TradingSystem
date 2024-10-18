@@ -1,7 +1,7 @@
 use clickhouse::Row;
 use yata::core::OHLCV;
 
-#[derive(Row)]
+#[derive(Row, Clone)]
 pub struct Kline {
     pub open_time: u64,
     pub open: f64,

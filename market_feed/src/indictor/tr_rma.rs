@@ -4,6 +4,7 @@ use super::Indicator;
 
 pub const LENGTH: u8 = 14;
 
+#[derive(Clone)]
 pub struct TrRMA {
     quote: yata::methods::RMA,
     tr_rma: f64,

@@ -1,7 +1,4 @@
-use market_feed::{
-    data::binance::{BinanceMarketFeed, BinanceMarketFeedBuilder},
-    MarketFeed,
-};
+use market_feed::{data::binance::BinanceMarketFeed, MarketFeed};
 use portfolio::{balance::BalanceHandler, position::PositionHandler};
 use protocol::market::Market;
 use strategy::{
@@ -26,11 +23,7 @@ where
         .market(market)
         .command_rx(command_rx)
         .portfolio(portfolio)
-        .market_data(
-            BinanceMarketFeedBuilder::default()
-                .build()
-                .expect("init binance market_feed error."),
-        )
+        .market_data(BinanceMarketFeed::new())
         .execution(())
         .strategy(
             MacdStrategyBuilder::default()

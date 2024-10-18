@@ -8,6 +8,7 @@ pub struct StochRsiDATA {
     pub d: f64,
 }
 
+#[derive(Clone)]
 pub struct StochRSI {
     rsi_list: circular_queue::CircularQueue<f64>,
     rsi_d_list: circular_queue::CircularQueue<f64>,

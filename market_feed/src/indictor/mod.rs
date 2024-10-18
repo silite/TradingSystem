@@ -1,3 +1,11 @@
+use adx::ADX;
+use dc::{DCData, DC};
+use ema::EMA;
+use macd::MACD;
+use rsi::RSI;
+use stoch_rsi::{StochRSI, StochRsiDATA};
+use tr::TR;
+use tr_rma::TrRMA;
 use yata::core::OHLCV;
 
 mod adx;
@@ -9,6 +17,7 @@ mod stoch_rsi;
 mod tr;
 mod tr_rma;
 
+/// 小指标的公共trait。
 pub trait Indicator {
     type Output;
     type Config = ();
@@ -22,5 +31,71 @@ pub trait Indicator {
     ///
     fn next(&mut self, k: &impl OHLCV) -> Self::Output {
         self.push(k).get()
+    }
+}
+
+/// 指标集合。
+/// FIXME 可能会有一些用不到的指标。
+/// Clone only for Builder.
+#[derive(Clone)]
+pub struct IndicatorsCollection {
+    pub dc: DC,
+    pub rsi: RSI,
+    pub ema: EMA,
+    pub stock_rsi: StochRSI,
+    pub adx: ADX,
+    pub macd: MACD,
+    pub tr_rma: TrRMA,
+    pub tr: TR,
+    pub pre_tr_rma: f64,
+}
+
+impl IndicatorsCollection {
+    pub fn new() -> Self {
+        Self {
+            dc: DC::new(None),
+            rsi: RSI::new(()),
+            ema: EMA::new(None),
+            stock_rsi: StochRSI::new(None),
+            adx: ADX::new(()),
+            macd: MACD::new(()),
+            tr_rma: TrRMA::new(),
+            tr: TR::new(()),
+            pre_tr_rma: 0.,
+        }
+    }
+}
+
+pub struct BundleMarketIndicator<D: OHLCV> {
+    pub market_data: D,
+    pub dc: DCData,
+    pub rsi: f64,
+    pub ema: f64,
+    pub stoch_rsi: StochRsiDATA,
+    pub adx: f64,
+    pub macd: (f64, f64),
+    pub tr_rma: f64,
+    pub tr: f64,
+    pub atr: (f64, f64),
+}
+impl<D: OHLCV + 'static> OHLCV for BundleMarketIndicator<D> {
+    fn open(&self) -> yata::core::ValueType {
+        self.market_data.open()
+    }
+
+    fn high(&self) -> yata::core::ValueType {
+        self.market_data.high()
+    }
+
+    fn low(&self) -> yata::core::ValueType {
+        self.market_data.low()
+    }
+
+    fn close(&self) -> yata::core::ValueType {
+        self.market_data.close()
+    }
+
+    fn volume(&self) -> yata::core::ValueType {
+        self.market_data.volume()
     }
 }

@@ -5,13 +5,14 @@ use super::Indicator;
 
 const DEFAULT_LENGTH: usize = 20;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DCData {
     pub high: f64,
     pub low: f64,
     pub mid: f64,
 }
 
+#[derive(Clone)]
 pub struct DC {
     quotes: CircularQueue<DCData>,
 }

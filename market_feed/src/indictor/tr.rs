@@ -2,6 +2,7 @@ use yata::core::{Candle, Method, OHLCV};
 
 use super::Indicator;
 
+#[derive(Clone)]
 pub struct TR {
     quote: yata::methods::TR,
     tr: f64,
