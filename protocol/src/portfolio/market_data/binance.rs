@@ -1,7 +1,8 @@
 use clickhouse::Row;
+use serde::{Deserialize, Serialize};
 use yata::core::OHLCV;
 
-#[derive(Row, Clone)]
+#[derive(Row, Clone, Deserialize, Serialize, Debug)]
 pub struct Kline {
     pub open_time: u64,
     pub open: f64,

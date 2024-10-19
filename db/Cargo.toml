@@ -4,8 +4,11 @@ version = "0.1.0"
 edition = "2021"
 [dependencies]
 conf       = { path = "../conf" }
+utils      = { path = "../utils" }
+protocol   = { path = "../protocol" }
 anyhow     = { workspace = true }
 serde      = { workspace = true }
 crossbeam  = { workspace = true }
 ftlog      = { workspace = true }
 clickhouse = { workspace = true }
+tokio      = { workspace = true }
