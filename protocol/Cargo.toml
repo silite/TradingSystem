@@ -6,3 +6,4 @@ edition = "2021"
 yata       = { workspace = true }
 clickhouse = { workspace = true }
 serde      = { workspace = true }
+tokio      = { workspace = true }

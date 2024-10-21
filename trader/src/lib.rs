@@ -27,7 +27,7 @@ where
     ///
     portfolio: Portfolio,
     ///
-    market_data: MarketData,
+    market_data: Arc<MarketData>,
     ///
     execution: Execution,
     ///

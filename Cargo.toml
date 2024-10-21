@@ -2,7 +2,6 @@
 members = [
   "engine",
   "strategy",
-  "backtest",
   "order_book",
   "protocol",
   "server",
@@ -19,7 +18,7 @@ members = [
   "api"
 ]
 [package]
-name    = "TradingSystem"
+name    = "trading-system"
 version = "0.1.0"
 edition = "2021"
 [workspace.dependencies]
@@ -33,9 +32,10 @@ uuid           = { version = "1.11.0", features = [ "v4" ] }
 tokio          = { version = "1.40.0", features = [ "macros", "rt", "rt-multi-thread" ] }
 derive_builder = "0.20.2"
 serde          = { version = "1.0.210", features = [ "derive" ] }
-serde_json     = "1.0.131"
+serde_json     = "1.0.132"
 yata           = "0.7.0"
 clickhouse     = "0.13.0"
+futures        = "0.3.31"
 [dependencies]
 tokio          = { workspace = true }
 anyhow         = { workspace = true }
@@ -51,3 +51,4 @@ portfolio      = { path = "portfolio" }
 trader         = { path = "trader" }
 market_feed    = { path = "market_feed" }
 strategy       = { path = "strategy" }
+utils          = { path = "utils" }

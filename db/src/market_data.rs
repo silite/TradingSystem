@@ -1,22 +1,32 @@
+use std::fmt::Debug;
+
 use clickhouse::Row;
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::CLIENT;
 
-pub async fn select_all<T: Row + DeserializeOwned>(
+pub async fn select_all<T: Row + DeserializeOwned + Debug>(
     sender: crossbeam::channel::Sender<T>,
-) -> anyhow::Result<()> {
-    let mut cursor = CLIENT.query(r#"SELECT * FROM BTCUSDT"#).fetch::<T>()?;
+    table: &str,
+) -> anyhow::Result<i32> {
+    let mut cursor = CLIENT
+        .query(&format!(r#"SELECT * FROM `{}`"#, table))
+        .fetch::<T>()?;
+    let mut cnt = 0;
     while let Some(row) = cursor.next().await? {
+        cnt += 1;
         if let Err(e) = sender.send(row) {
             ftlog::error!("send market_error {:?}", e)
         }
     }
-    Ok(())
+    Ok(cnt)
 }
 
-pub async fn batch_insert<T: Row + Serialize>(data_list: Vec<T>) -> anyhow::Result<()> {
-    let mut insert = CLIENT.insert("btcusdt_kline")?;
+pub async fn batch_insert<T: Row + Serialize>(
+    data_list: Vec<T>,
+    table: &str,
+) -> anyhow::Result<()> {
+    let mut insert = CLIENT.insert(table)?;
     for data in data_list {
         insert.write(&data).await?;
     }
@@ -37,6 +47,6 @@ mod test {
         )
         .unwrap();
         println!("{:?}", res.len());
-        batch_insert(res).await.unwrap();
+        batch_insert(res, "btcusdt_kline").await.unwrap();
     }
 }

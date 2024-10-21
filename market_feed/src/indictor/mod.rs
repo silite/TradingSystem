@@ -66,6 +66,7 @@ impl IndicatorsCollection {
     }
 }
 
+#[derive(Debug)]
 pub struct BundleMarketIndicator<D: OHLCV> {
     pub market_data: D,
     pub dc: DCData,
