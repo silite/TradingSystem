@@ -27,3 +27,4 @@ Cargo.lock
 binance_kline_csv.json
 *.zip
 *.csv
+/logs
