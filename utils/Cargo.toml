@@ -9,5 +9,6 @@ serde      = { workspace = true }
 serde_json = { workspace = true }
 tokio      = { workspace = true }
 anyhow     = { workspace = true }
-zip = "2.2.0"
-csv = "1.3.0"
+ftlog      = { workspace = true }
+zip        = "2.2.0"
+csv        = "1.3.0"
