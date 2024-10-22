@@ -8,10 +8,10 @@ use std::{
 };
 
 use derive_builder::Builder;
-use market_feed::{generator::MarketGenerator, MarketFeed};
+use market_feed::MarketFeed;
 use portfolio::{balance::BalanceHandler, position::PositionHandler};
 use protocol::{
-    event::{Command, MarketEvent},
+    event::{Event, EventBus},
     market::Market,
 };
 use rayon::prelude::*;
@@ -19,38 +19,42 @@ use strategy::StrategyExt;
 use trader::Trader;
 
 #[derive(Builder)]
-pub struct Engine<Portfolio, MarketDataGenerator, Execution, Strategy>
+pub struct Engine<Portfolio, MarketFeeder, Execution, Strategy>
 where
     Portfolio: BalanceHandler + PositionHandler,
-    MarketDataGenerator: MarketGenerator<MarketEvent>,
+    MarketFeeder: MarketFeed,
     Strategy: StrategyExt,
     Execution: Send,
 {
     /// 全局唯一engine_id，索引全局唯一的portfolio，掌管一批traders。
     engine_id: uuid::Uuid,
     /// 响应命令的管线。
-    command_rx: crossbeam::channel::Receiver<Command>,
+    event_bus: Arc<EventBus>,
     /// 启动时全局静态配置/环境变量。
     config: conf::Config,
     /// 全局投资组合，每个trader独占享有的资金，每个trader的资产更新时，会异步patch更新到全局。
     /// 所以这里的数据更新可能并不及时。
     portfolio: HashMap<Market, Portfolio>,
     /// 每个traders享有独占的账户资产，trader 和 strategy 为1对1。
-    traders: HashMap<Market, Trader<Portfolio, MarketDataGenerator, Execution, Strategy>>,
+    traders: HashMap<Market, Trader<Portfolio, MarketFeeder, Execution, Strategy>>,
 }
 
-impl<Portfolio, MarketDataGenerator, Execution, Strategy>
-    Engine<Portfolio, MarketDataGenerator, Execution, Strategy>
+impl<Portfolio, MarketFeeder, Execution, Strategy>
+    Engine<Portfolio, MarketFeeder, Execution, Strategy>
 where
     Portfolio: BalanceHandler + PositionHandler + Send + 'static,
-    MarketDataGenerator: MarketGenerator<MarketEvent> + Send + 'static,
+    MarketFeeder: MarketFeed + Send + 'static,
     Strategy: StrategyExt + Send + 'static,
     Execution: Send + 'static,
 {
     pub fn run(self) -> anyhow::Result<()> {
         self.traders.into_iter().for_each(|(market, trade)| {
-            std::thread::spawn(move || {
-                trade.run();
+            tokio::spawn(async move {
+                trade
+                    .run()
+                    .await
+                    .map_err(|err| ftlog::error!("[trade] trade error. {:?}", err))
+                    .unwrap();
             });
         });
         Ok(())

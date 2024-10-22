@@ -8,23 +8,20 @@ use std::{
 };
 
 use derive_builder::Builder;
-use market_feed::{
-    generator::{Feed, MarketGenerator},
-    MarketFeed,
-};
+use market_feed::MarketFeed;
 use portfolio::{balance::BalanceHandler, position::PositionHandler};
 use protocol::{
-    event::{Command, MarketEvent},
+    event::{Event, EventBus},
     market::Market,
 };
 use strategy::StrategyExt;
 
 /// Clone only for Builder.
 #[derive(Builder, Clone)]
-pub struct Trader<Portfolio, MarketDataGenerator, Execution, Strategy>
+pub struct Trader<Portfolio, MarketFeeder, Execution, Strategy>
 where
     Portfolio: BalanceHandler + PositionHandler,
-    MarketDataGenerator: MarketGenerator<MarketEvent>,
+    MarketFeeder: MarketFeed,
     Strategy: StrategyExt,
     Execution: Send,
 {
@@ -33,24 +30,22 @@ where
     ///
     market: Market,
     /// receiving [`Command`]s from a remote source.
-    command_rx: crossbeam::channel::Receiver<Command>,
-    ///
-    event_tx: crossbeam::channel::Sender<MarketEvent>,
+    event_bus: Arc<EventBus>,
     ///
     portfolio: Portfolio,
     ///
-    market_data_generator: MarketDataGenerator,
+    market_feed: MarketFeeder,
     ///
     execution: Execution,
     ///
     strategy: Strategy,
 }
 
-impl<Portfolio, MarketDataGenerator, Execution, Strategy>
-    Trader<Portfolio, MarketDataGenerator, Execution, Strategy>
+impl<Portfolio, MarketFeeder, Execution, Strategy>
+    Trader<Portfolio, MarketFeeder, Execution, Strategy>
 where
     Portfolio: BalanceHandler + PositionHandler,
-    MarketDataGenerator: MarketGenerator<MarketEvent>,
+    MarketFeeder: MarketFeed + Send + 'static,
     Strategy: StrategyExt,
     Execution: Send,
 {
@@ -58,25 +53,28 @@ where
         todo!()
     }
 
-    pub fn run(mut self) {
+    pub async fn run(self) -> anyhow::Result<()> {
+        let local = tokio::task::LocalSet::new();
+        local.spawn_local(async move {
+            self.market_feed
+                .run()
+                .await
+                .map_err(|err| ftlog::error!("[market feed] error. {:?}", err))
+                .unwrap();
+        });
+        let event_rx = self
+            .event_bus
+            .subscribe(format!("{:?}-trader", self.market));
         'trading: loop {
-            if let Ok(command) = self.command_rx.recv() {
+            if let Ok(command) = event_rx.recv() {
                 match command {
-                    Command::Terminate(_) => break 'trading,
-                }
-            }
-
-            match self.market_data_generator.next() {
-                Feed::Next(market) => {
-                    println!("{:?}", market);
-                }
-                _ => {
-                    ftlog::error!(
-                        "[recv market data generator] no handler. {}",
-                        self.engine_id
-                    );
+                    Event::Command(command_event) => match command_event {
+                        protocol::event::CommandEvent::Terminate(_) => break 'trading,
+                    },
+                    _ => unreachable!(),
                 }
             }
         }
+        Ok(())
     }
 }

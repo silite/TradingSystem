@@ -8,6 +8,8 @@ uuid           = { workspace = true }
 derive_builder = { workspace = true }
 rayon          = { workspace = true }
 anyhow         = { workspace = true }
+tokio          = { workspace = true }
+ftlog          = { workspace = true }
 conf           = { path = "../conf" }
 protocol       = { path = "../protocol" }
 portfolio      = { path = "../portfolio" }

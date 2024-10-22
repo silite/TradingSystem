@@ -4,14 +4,13 @@
 #![allow(unused_variables)]
 #![allow(unused_imports)]
 
-use std::process::Command;
+use std::{process::Command, sync::Arc};
 
-use protocol::event::MarketEvent;
+use protocol::event::EventBus;
 use tokio::sync::mpsc;
 use yata::core::OHLCV;
 
 pub mod data;
-pub mod generator;
 pub mod indictor;
 
 /// 基于划线来做策略的Feed方案。
@@ -21,13 +20,8 @@ pub trait MarketFeed: Sized {
     /// 原始行情
     type MarketData: OHLCV;
 
-    type Command;
-
     // 返回指令接受 和 数据推送channel
-    fn new() -> (
-        mpsc::UnboundedSender<Self::Command>,
-        crossbeam::channel::Receiver<MarketEvent>,
-    );
+    fn new(event_bus: Arc<EventBus>, market_tx_topic: &'static str) -> Self;
 
     /// 相应command
     async fn run(self) -> anyhow::Result<()>;

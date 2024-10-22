@@ -1,6 +1,7 @@
-use std::marker::PhantomData;
+use std::{collections::HashMap, marker::PhantomData};
 
 use chrono::{DateTime, Utc};
+use dashmap::DashMap;
 
 use crate::{
     indictor::BundleMarketIndicator,
@@ -8,8 +9,40 @@ use crate::{
     portfolio::market_data::binance::Kline,
 };
 
-pub enum Command {
-    /// Terminate every running [`Trader`] associated with this [`Engine`]. Involves all [`Trader`]s.
+pub enum Event {
+    MarketData(MarketDataEvent),
+    MarketFeed(MarketFeedEvent),
+    TradeExecution(),
+    PortfolioUpdate(),
+    Command(CommandEvent),
+}
+
+/// 事件总线，解耦各个模块，并异步处理事件
+pub struct EventBus {
+    senders: DashMap<String, crossbeam::channel::Sender<Event>>,
+}
+impl EventBus {
+    pub fn new() -> Self {
+        EventBus {
+            senders: DashMap::new(),
+        }
+    }
+
+    pub fn subscribe(&self, topic: String) -> crossbeam::channel::Receiver<Event> {
+        let (sender, receiver) = crossbeam::channel::unbounded();
+        self.senders.insert(topic, sender);
+        receiver
+    }
+
+    pub fn publish(&self, topic: &str, event: Event) -> anyhow::Result<()> {
+        if let Some(sender) = self.senders.get(topic) {
+            sender.send(event)?
+        }
+        Ok(())
+    }
+}
+
+pub enum CommandEvent {
     Terminate(String),
 }
 
@@ -25,7 +58,7 @@ pub enum Command {
 /// - [`MarketEvent<DataKind>`](DataKind)
 // pub struct MarketEvent<InstrumentId = Instrument, T = DataKind> {
 #[derive(Debug, Clone)]
-pub struct MarketEvent<T = DataKind> {
+pub struct MarketDataEvent<T = DataKind> {
     // pub exchange_time: DateTime<Utc>,
     // pub received_time: DateTime<Utc>,
     // pub exchange: Exchange,
@@ -48,4 +81,9 @@ pub struct MarketEvent<T = DataKind> {
 pub enum DataKind {
     Kline(Kline),
     BundleData(BundleMarketIndicator),
+}
+
+pub enum MarketFeedEvent {
+    /// 读取历史所有行情
+    LoadHistory,
 }

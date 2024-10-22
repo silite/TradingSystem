@@ -8,3 +8,6 @@ clickhouse = { workspace = true }
 serde      = { workspace = true }
 tokio      = { workspace = true }
 chrono     = { workspace = true }
+crossbeam  = { workspace = true }
+anyhow     = { workspace = true }
+dashmap    = { workspace = true }

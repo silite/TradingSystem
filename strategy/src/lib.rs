@@ -1,8 +1,10 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 #![allow(unused_imports)]
+use std::sync::Arc;
+
 use error::{CloseError, OpenError, PreValidError, RearValidError};
-use protocol::event::MarketEvent;
+use protocol::event::EventBus;
 use signal::SignalExt;
 
 mod error;
@@ -11,10 +13,7 @@ mod signal;
 
 pub trait StrategyExt {
     /// 接收事件源
-    fn handle_event(
-        self,
-        rx: crossbeam::channel::Receiver<MarketEvent>,
-    ) -> std::thread::JoinHandle<anyhow::Result<()>>;
+    fn handle_event(self, event_bus: Arc<EventBus>) -> std::thread::JoinHandle<anyhow::Result<()>>;
 
     /// 尝试平仓前要做前置校验，如时间、配置、阈值校验。
     fn pre_valid(&self) -> anyhow::Result<(), PreValidError>;

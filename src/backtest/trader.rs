@@ -1,13 +1,9 @@
 use std::sync::Arc;
 
-use market_feed::{
-    data::binance::BinanceMarketFeed,
-    generator::{binance::BinanceMarketGenerator, MarketGenerator},
-    MarketFeed,
-};
+use market_feed::{data::binance::BinanceMarketFeed, MarketFeed};
 use portfolio::{balance::BalanceHandler, position::PositionHandler};
 use protocol::{
-    event::MarketEvent, indictor::BundleMarketIndicator, market::Market,
+    event::EventBus, indictor::BundleMarketIndicator, market::Market,
     portfolio::market_data::binance::Kline,
 };
 use strategy::{
@@ -21,26 +17,26 @@ pub async fn init_binance_trader<Portfolio>(
     engine_id: Uuid,
     market: Market,
     portfolio: Portfolio,
-) -> Trader<Portfolio, BinanceMarketGenerator<MarketEvent>, (), MacdStrategy>
+    event_bus: Arc<EventBus>,
+) -> Trader<Portfolio, BinanceMarketFeed, (), MacdStrategy>
 where
     Portfolio: BalanceHandler + PositionHandler + Clone,
 {
-    let (_command_tx, command_rx) = crossbeam::channel::unbounded();
-    let (event_tx, event_rx) = crossbeam::channel::unbounded();
-    let (binance_market_feed, market_command_tx) = BinanceMarketFeed::new();
-
+    let indicator_market_topic = "indicator_strategy";
     let macd_strategy = MacdStrategyBuilder::default()
-        .event_rx(event_rx)
+        .market_feed_topic(indicator_market_topic)
         .build()
-        .expect("init macd ver strategy error.");
+        .expect("Init macd strategy error.");
 
     trader::TraderBuilder::default()
         .engine_id(engine_id)
         .market(market)
-        .event_tx(event_tx)
-        .command_rx(command_rx)
+        .event_bus(event_bus.clone())
         .portfolio(portfolio)
-        .market_data_generator(BinanceMarketGenerator::new(market_command_tx))
+        .market_feed(BinanceMarketFeed::new(
+            event_bus.clone(),
+            indicator_market_topic,
+        ))
         .execution(())
         .strategy(macd_strategy)
         .build()

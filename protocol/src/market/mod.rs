@@ -17,7 +17,7 @@ pub enum InstrumentKind {
 }
 
 /// Clone only for Builder.
-#[derive(Clone, Hash, PartialEq, Eq)]
+#[derive(Clone, Hash, PartialEq, Eq, Debug)]
 pub struct Market<InstrumentId = Instrument>
 where
     InstrumentId: Clone,
