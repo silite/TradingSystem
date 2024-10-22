@@ -8,27 +8,26 @@ use std::{
 use crossbeam::channel::{Receiver, Sender};
 use derive_builder::Builder;
 use futures::FutureExt;
-use protocol::portfolio::market_data::binance::Kline;
+use protocol::{
+    event::{DataKind, MarketEvent},
+    indictor::BundleMarketIndicator,
+    portfolio::market_data::binance::Kline,
+};
 use tokio::sync::{mpsc, oneshot};
 
 use crate::{
-    indictor::{BundleMarketIndicator, Indicator, IndicatorsCollection},
+    indictor::{Indicator, IndicatorsCollection},
     MarketFeed,
 };
 
-pub enum BinanceMarketFeedCommand<T> {
-    Subscribe(crossbeam::channel::Sender<T>),
+pub enum BinanceMarketFeedCommand {
     LoadHistory,
 }
 
 pub struct BinanceMarketFeed {
     indicators: IndicatorsCollection,
-    subscribe_channel: Option<Sender<BundleMarketIndicator<Kline>>>,
-    command_rx: Option<
-        tokio::sync::mpsc::UnboundedReceiver<
-            BinanceMarketFeedCommand<BundleMarketIndicator<Kline>>,
-        >,
-    >,
+    subscribe_channel: Sender<MarketEvent>,
+    command_rx: Option<tokio::sync::mpsc::UnboundedReceiver<BinanceMarketFeedCommand>>,
 }
 
 impl Clone for BinanceMarketFeed {
@@ -44,21 +43,24 @@ impl Clone for BinanceMarketFeed {
 impl MarketFeed for BinanceMarketFeed {
     type MarketData = Kline;
 
-    // TODO + ?
-    type BundleData = BundleMarketIndicator<Kline>;
+    type Command = BinanceMarketFeedCommand;
 
-    type Command = BinanceMarketFeedCommand<Self::BundleData>;
-
-    fn new() -> (Self, mpsc::UnboundedSender<Self::Command>) {
+    fn new() -> (
+        mpsc::UnboundedSender<Self::Command>,
+        crossbeam::channel::Receiver<MarketEvent>,
+    ) {
         let (command_tx, command_rx) = mpsc::unbounded_channel();
-        (
-            Self {
-                indicators: IndicatorsCollection::new(),
-                subscribe_channel: None,
-                command_rx: Some(command_rx),
-            },
-            command_tx,
-        )
+        let (data_tx, data_rx) = crossbeam::channel::unbounded();
+        let inst = Self {
+            indicators: IndicatorsCollection::new(),
+            subscribe_channel: data_tx,
+            command_rx: Some(command_rx),
+        };
+        let handle = tokio::spawn(async {
+            inst.run().await.unwrap();
+        });
+
+        (command_tx, data_rx)
     }
 
     async fn run(mut self) -> anyhow::Result<()> {
@@ -68,9 +70,6 @@ impl MarketFeed for BinanceMarketFeed {
                 tokio::select! {
                     Some(command) = command_rx.recv() => {
                         match command {
-                            BinanceMarketFeedCommand::Subscribe(sender) => {
-                                self.subscribe(sender)?;
-                            }
                             BinanceMarketFeedCommand::LoadHistory => {
                                 let history_cnt = self.load_history_market_data().await?;
                                 ftlog::info!("Load market data history done. cnt({})", history_cnt);
@@ -131,47 +130,36 @@ impl MarketFeed for BinanceMarketFeed {
         let atr_high = self.indicators.pre_tr_rma * 1.5 + data.high;
         self.indicators.pre_tr_rma = tr_rma;
 
-        if let Some(sender) = &self.subscribe_channel {
-            if let Err(e) = sender.send(BundleMarketIndicator {
-                market_data: data.clone(),
-                dc,
-                rsi,
-                ema,
-                stoch_rsi,
-                adx,
-                macd,
-                tr_rma,
-                tr,
-                atr: (atr_low, atr_high),
-            }) {
-                ftlog::error!("send computed indicator error {}", e);
-            }
-        }
-    }
+        let bundle_data = BundleMarketIndicator {
+            market_data: data.clone(),
+            dc,
+            rsi,
+            ema,
+            stoch_rsi,
+            adx,
+            macd,
+            tr_rma,
+            tr,
+            atr: (atr_low, atr_high),
+        };
 
-    fn subscribe(&mut self, sender: Sender<BundleMarketIndicator<Kline>>) -> anyhow::Result<()> {
-        self.subscribe_channel = Some(sender);
-        Ok(())
+        if let Err(e) = self.subscribe_channel.send(MarketEvent {
+            kind: DataKind::BundleData(bundle_data),
+        }) {
+            ftlog::error!("send computed indicator error {}", e);
+        }
     }
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 6)]
 async fn test_market_feed() {
     utils::logs::logs_guard();
-    let (inst, command_tx) = BinanceMarketFeed::new();
-    let (tx, rx) = crossbeam::channel::unbounded();
-    let handle = tokio::spawn(async {
-        inst.run().await.unwrap();
-    });
-    command_tx
-        .send(BinanceMarketFeedCommand::Subscribe(tx))
-        .map_err(|e| ftlog::error!("{:?}", e))
-        .unwrap_or_default();
+    let (command_tx, data_rx) = BinanceMarketFeed::new();
     command_tx
         .send(BinanceMarketFeedCommand::LoadHistory)
         .map_err(|e| ftlog::error!("{:?}", e))
         .unwrap_or_default();
-    while let Ok(computed_data) = rx.recv() {
+    while let Ok(computed_data) = data_rx.recv() {
         println!("{:?}", computed_data);
     }
 }

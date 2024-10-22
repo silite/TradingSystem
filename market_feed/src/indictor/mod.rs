@@ -1,9 +1,9 @@
 use adx::ADX;
-use dc::{DCData, DC};
+use dc::DC;
 use ema::EMA;
 use macd::MACD;
 use rsi::RSI;
-use stoch_rsi::{StochRSI, StochRsiDATA};
+use stoch_rsi::StochRSI;
 use tr::TR;
 use tr_rma::TrRMA;
 use yata::core::OHLCV;
@@ -63,40 +63,5 @@ impl IndicatorsCollection {
             tr: TR::new(()),
             pre_tr_rma: 0.,
         }
-    }
-}
-
-#[derive(Debug)]
-pub struct BundleMarketIndicator<D: OHLCV> {
-    pub market_data: D,
-    pub dc: DCData,
-    pub rsi: f64,
-    pub ema: f64,
-    pub stoch_rsi: StochRsiDATA,
-    pub adx: f64,
-    pub macd: (f64, f64),
-    pub tr_rma: f64,
-    pub tr: f64,
-    pub atr: (f64, f64),
-}
-impl<D: OHLCV + 'static> OHLCV for BundleMarketIndicator<D> {
-    fn open(&self) -> yata::core::ValueType {
-        self.market_data.open()
-    }
-
-    fn high(&self) -> yata::core::ValueType {
-        self.market_data.high()
-    }
-
-    fn low(&self) -> yata::core::ValueType {
-        self.market_data.low()
-    }
-
-    fn close(&self) -> yata::core::ValueType {
-        self.market_data.close()
-    }
-
-    fn volume(&self) -> yata::core::ValueType {
-        self.market_data.volume()
     }
 }

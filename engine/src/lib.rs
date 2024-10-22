@@ -8,17 +8,20 @@ use std::{
 };
 
 use derive_builder::Builder;
-use market_feed::MarketFeed;
+use market_feed::{generator::MarketGenerator, MarketFeed};
 use portfolio::{balance::BalanceHandler, position::PositionHandler};
-use protocol::{command::Command, market::Market};
+use protocol::{
+    event::{Command, MarketEvent},
+    market::Market,
+};
 use strategy::StrategyExt;
 use trader::Trader;
 
 #[derive(Builder)]
-pub struct Engine<Portfolio, MarketData, Execution, Strategy>
+pub struct Engine<Portfolio, MarketDataGenerator, Execution, Strategy>
 where
     Portfolio: BalanceHandler + PositionHandler,
-    MarketData: MarketFeed,
+    MarketDataGenerator: MarketGenerator<MarketEvent>,
     Strategy: StrategyExt,
 {
     /// 全局唯一engine_id，索引全局唯一的portfolio，掌管一批traders。
@@ -31,13 +34,14 @@ where
     /// 所以这里的数据更新可能并不及时。
     portfolio: HashMap<Market, Portfolio>,
     /// 每个traders享有独占的账户资产，trader 和 strategy 为1对1。
-    traders: HashMap<Market, Trader<Portfolio, MarketData, Execution, Strategy>>,
+    traders: HashMap<Market, Trader<Portfolio, MarketDataGenerator, Execution, Strategy>>,
 }
 
-impl<Portfolio, MarketData, Execution, Strategy> Engine<Portfolio, MarketData, Execution, Strategy>
+impl<Portfolio, MarketDataGenerator, Execution, Strategy>
+    Engine<Portfolio, MarketDataGenerator, Execution, Strategy>
 where
     Portfolio: BalanceHandler + PositionHandler,
-    MarketData: MarketFeed,
+    MarketDataGenerator: MarketGenerator<MarketEvent>,
     Strategy: StrategyExt,
 {
 }

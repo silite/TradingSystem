@@ -6,6 +6,7 @@ edition = "2021"
 uuid           = { workspace = true }
 crossbeam      = { workspace = true }
 derive_builder = { workspace = true }
+ftlog          = { workspace = true }
 protocol       = { path = "../protocol" }
 market_feed    = { path = "../market_feed" }
 portfolio      = { path = "../portfolio" }

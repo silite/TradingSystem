@@ -1,12 +1,8 @@
+use protocol::indictor::StochRsiDATA;
+
 use super::Indicator;
 
 const DEFAULT_LENGTH: usize = 14;
-
-#[derive(Debug)]
-pub struct StochRsiDATA {
-    pub k: f64,
-    pub d: f64,
-}
 
 #[derive(Clone)]
 pub struct StochRSI {

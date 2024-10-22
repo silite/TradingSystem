@@ -1,8 +1,15 @@
 use std::sync::Arc;
 
-use market_feed::{data::binance::BinanceMarketFeed, MarketFeed};
+use market_feed::{
+    data::binance::BinanceMarketFeed,
+    generator::{binance::BinanceMarketGenerator, MarketGenerator},
+    MarketFeed,
+};
 use portfolio::{balance::BalanceHandler, position::PositionHandler};
-use protocol::market::Market;
+use protocol::{
+    event::MarketEvent, indictor::BundleMarketIndicator, market::Market,
+    portfolio::market_data::binance::Kline,
+};
 use strategy::{
     implements::macd::{MacdStrategy, MacdStrategyBuilder},
     StrategyExt,
@@ -14,7 +21,7 @@ pub async fn init_binance_trader<Portfolio>(
     engine_id: Uuid,
     market: Market,
     portfolio: Portfolio,
-) -> Trader<Portfolio, BinanceMarketFeed, (), MacdStrategy>
+) -> Trader<Portfolio, BinanceMarketGenerator<MarketEvent>, (), MacdStrategy>
 where
     Portfolio: BalanceHandler + PositionHandler + Clone,
 {
@@ -27,7 +34,7 @@ where
         .market(market)
         .command_rx(command_rx)
         .portfolio(portfolio)
-        .market_data(Arc::new(binance_market_feed))
+        .market_data_generator(BinanceMarketGenerator::new(market_command_tx))
         .execution(())
         .strategy(
             MacdStrategyBuilder::default()

@@ -6,10 +6,12 @@
 
 use std::process::Command;
 
+use protocol::event::MarketEvent;
 use tokio::sync::mpsc;
 use yata::core::OHLCV;
 
 pub mod data;
+pub mod generator;
 pub mod indictor;
 
 /// 基于划线来做策略的Feed方案。
@@ -18,12 +20,14 @@ pub mod indictor;
 pub trait MarketFeed: Sized {
     /// 原始行情
     type MarketData: OHLCV;
-    /// 行情 + 指标，TODO + ?
-    type BundleData: OHLCV;
 
     type Command;
 
-    fn new() -> (Self, mpsc::UnboundedSender<Self::Command>);
+    // 返回指令接受 和 数据推送channel
+    fn new() -> (
+        mpsc::UnboundedSender<Self::Command>,
+        crossbeam::channel::Receiver<MarketEvent>,
+    );
 
     /// 相应command
     async fn run(self) -> anyhow::Result<()>;
@@ -41,10 +45,4 @@ pub trait MarketFeed: Sized {
 
     /// 计算指标
     fn computed_indicator(&mut self, data: &Self::MarketData);
-
-    /// 订阅最新据流，数据加载中时，会返回异常。
-    fn subscribe(
-        &mut self,
-        sender: crossbeam::channel::Sender<Self::BundleData>,
-    ) -> anyhow::Result<()>;
 }
