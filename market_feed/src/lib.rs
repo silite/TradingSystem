@@ -21,10 +21,14 @@ pub trait MarketFeed: Sized {
     type MarketData: OHLCV;
 
     // 返回指令接受 和 数据推送channel
-    fn new(event_bus: Arc<EventBus>, market_tx_topic: &'static str) -> Self;
+    fn new(
+        event_bus: Arc<EventBus>,
+        market_tx_topic: &'static str,
+        event_topic: &'static str,
+    ) -> Self;
 
     /// 相应command
-    async fn run(self) -> anyhow::Result<()>;
+    fn run(self) -> impl std::future::Future<Output = anyhow::Result<()>> + Send;
 
     /// 从头load所有历史行情，因为指标需要从头开始计算
     /// 这里优雅停机后，可以将需要的指标缓存，这样可以断点恢复

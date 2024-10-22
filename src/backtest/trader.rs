@@ -22,9 +22,11 @@ pub async fn init_binance_trader<Portfolio>(
 where
     Portfolio: BalanceHandler + PositionHandler + Clone,
 {
-    let indicator_market_topic = "indicator_strategy";
+    let indicator_market_feed_topic = "indicator_strategy";
+    let market_feed_event_topic = "binance_market_feed";
+
     let macd_strategy = MacdStrategyBuilder::default()
-        .market_feed_topic(indicator_market_topic)
+        .market_feed_topic(indicator_market_feed_topic)
         .build()
         .expect("Init macd strategy error.");
 
@@ -35,7 +37,8 @@ where
         .portfolio(portfolio)
         .market_feed(BinanceMarketFeed::new(
             event_bus.clone(),
-            indicator_market_topic,
+            indicator_market_feed_topic,
+            market_feed_event_topic,
         ))
         .execution(())
         .strategy(macd_strategy)

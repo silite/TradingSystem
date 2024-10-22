@@ -9,6 +9,7 @@ use crate::{
     portfolio::market_data::binance::Kline,
 };
 
+#[derive(Debug)]
 pub enum Event {
     MarketData(MarketDataEvent),
     MarketFeed(MarketFeedEvent),
@@ -20,11 +21,13 @@ pub enum Event {
 /// 事件总线，解耦各个模块，并异步处理事件
 pub struct EventBus {
     senders: DashMap<String, crossbeam::channel::Sender<Event>>,
+    senders_sync: DashMap<String, tokio::sync::mpsc::UnboundedSender<Event>>,
 }
 impl EventBus {
     pub fn new() -> Self {
         EventBus {
             senders: DashMap::new(),
+            senders_sync: DashMap::new(),
         }
     }
 
@@ -34,14 +37,34 @@ impl EventBus {
         receiver
     }
 
+    pub fn subscribe_sync(&self, topic: String) -> tokio::sync::mpsc::UnboundedReceiver<Event> {
+        let (sender, receiver) = tokio::sync::mpsc::unbounded_channel();
+        self.senders_sync.insert(topic, sender);
+        receiver
+    }
+
     pub fn publish(&self, topic: &str, event: Event) -> anyhow::Result<()> {
-        if let Some(sender) = self.senders.get(topic) {
-            sender.send(event)?
+        match event {
+            Event::Command(_) | Event::MarketFeed(_) => {
+                if let Some(sender) = self.senders_sync.get(topic) {
+                    sender.send(event)?
+                } else {
+                    ftlog::error!("PLACE FIXME. {} {:?}", topic, event);
+                }
+            }
+            Event::MarketData(_) | Event::TradeExecution() | Event::PortfolioUpdate() => {
+                if let Some(sender) = self.senders.get(topic) {
+                    sender.send(event)?
+                } else {
+                    ftlog::error!("PLACE FIXME. {} {:?}", topic, event);
+                }
+            }
         }
         Ok(())
     }
 }
 
+#[derive(Debug)]
 pub enum CommandEvent {
     Terminate(String),
 }
@@ -83,6 +106,7 @@ pub enum DataKind {
     BundleData(BundleMarketIndicator),
 }
 
+#[derive(Debug)]
 pub enum MarketFeedEvent {
     /// 读取历史所有行情
     LoadHistory,

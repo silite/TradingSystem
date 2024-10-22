@@ -13,7 +13,7 @@ mod signal;
 
 pub trait StrategyExt {
     /// 接收事件源
-    fn handle_event(self, event_bus: Arc<EventBus>) -> std::thread::JoinHandle<anyhow::Result<()>>;
+    fn run(self, event_bus: Arc<EventBus>) -> std::thread::JoinHandle<anyhow::Result<()>>;
 
     /// 尝试平仓前要做前置校验，如时间、配置、阈值校验。
     fn pre_valid(&self) -> anyhow::Result<(), PreValidError>;

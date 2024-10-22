@@ -46,7 +46,7 @@ impl<Portfolio, MarketFeeder, Execution, Strategy>
 where
     Portfolio: BalanceHandler + PositionHandler,
     MarketFeeder: MarketFeed + Send + 'static,
-    Strategy: StrategyExt,
+    Strategy: StrategyExt + Send + 'static,
     Execution: Send,
 {
     pub fn new() -> Self {
@@ -54,14 +54,20 @@ where
     }
 
     pub async fn run(self) -> anyhow::Result<()> {
-        let local = tokio::task::LocalSet::new();
-        local.spawn_local(async move {
-            self.market_feed
-                .run()
-                .await
-                .map_err(|err| ftlog::error!("[market feed] error. {:?}", err))
-                .unwrap();
+        ftlog::info!("[trade] {} {:?} run.", self.engine_id, self.market);
+
+        let event_bus_cp = self.event_bus.clone();
+        // 等待spawn成功
+        let (start_tx, start_rx) = tokio::sync::oneshot::channel();
+        tokio::spawn(async move {
+            let _ = start_tx.send(());
+            self.strategy.run(event_bus_cp.clone());
+            let _ = self.market_feed.run().await.map_err(|err| {
+                ftlog::error!("[market feed] run error. {:?}", err);
+            });
         });
+        start_rx.await?;
+
         let event_rx = self
             .event_bus
             .subscribe(format!("{:?}-trader", self.market));

@@ -11,16 +11,18 @@ pub struct MacdStrategy {
 }
 
 impl StrategyExt for MacdStrategy {
-    fn handle_event(self, event_bus: Arc<EventBus>) -> JoinHandle<anyhow::Result<()>> {
+    fn run(self, event_bus: Arc<EventBus>) -> JoinHandle<anyhow::Result<()>> {
         let event_rs = event_bus.subscribe(self.market_feed_topic.to_owned());
         let this = Arc::new(self);
         std::thread::spawn(move || {
+            println!("{:?}", 456);
             while let Ok(event) = event_rs.recv() {
                 match event {
                     protocol::event::Event::MarketData(market_data_event) => {
                         match market_data_event.kind {
                             protocol::event::DataKind::Kline(kline) => todo!(),
                             protocol::event::DataKind::BundleData(bundle_market_indicator) => {
+                                println!("{:?}", bundle_market_indicator);
                                 this.pre_valid()?;
                                 this.try_close()?;
                                 this.try_open()?;

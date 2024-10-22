@@ -24,38 +24,40 @@ use crate::{
 pub struct BinanceMarketFeed {
     indicators: IndicatorsCollection,
     event_bus: Arc<EventBus>,
-    event_rx: crossbeam::channel::Receiver<Event>,
     market_tx_topic: &'static str,
+    event_topic: &'static str,
 }
 
 impl MarketFeed for BinanceMarketFeed {
     type MarketData = Kline;
 
-    fn new(event_bus: Arc<EventBus>, market_tx_topic: &'static str) -> Self {
-        let event_rx = event_bus.subscribe("binance_market_feed".to_owned());
-
+    fn new(
+        event_bus: Arc<EventBus>,
+        market_tx_topic: &'static str,
+        event_topic: &'static str,
+    ) -> Self {
         Self {
             indicators: IndicatorsCollection::new(),
             event_bus,
             market_tx_topic,
-            event_rx,
+            event_topic,
         }
-
-        // tokio::spawn(async {
-        //     inst.run().await?;
-        //     Ok(())
-        // })
     }
 
     async fn run(mut self) -> anyhow::Result<()> {
         ftlog::info!("[binance market feed] run.");
-        while let Ok(event) = self.event_rx.recv() {
+        let mut event_rx = self.event_bus.subscribe_sync(self.event_topic.to_owned());
+        while let Some(event) = event_rx.recv().await {
             match event {
                 Event::MarketFeed(market_feed_event) => match market_feed_event {
-                    MarketFeedEvent::LoadHistory => {
-                        let history_cnt = self.load_history_market_data().await?;
-                        ftlog::info!("Load market data history done. cnt({})", history_cnt);
-                    }
+                    MarketFeedEvent::LoadHistory => match self.load_history_market_data().await {
+                        Ok(history_cnt) => {
+                            ftlog::info!("Load market data history done. cnt({})", history_cnt);
+                        }
+                        Err(err) => {
+                            ftlog::error!("[market feed] load_history_market_data error. {:?}", err)
+                        }
+                    },
                 },
                 _ => unreachable!(),
             }
@@ -64,6 +66,7 @@ impl MarketFeed for BinanceMarketFeed {
     }
 
     async fn load_history_market_data(&mut self) -> anyhow::Result<i32> {
+        // 这里也可以改总线，发送全局Kline
         ftlog::info!("[binance market feed] start load_history_market_data.");
         let (tx, rx) = crossbeam::channel::unbounded::<Kline>();
 
@@ -135,12 +138,17 @@ impl MarketFeed for BinanceMarketFeed {
 #[tokio::test(flavor = "multi_thread", worker_threads = 6)]
 async fn test_market_feed() {
     utils::logs::logs_guard();
-    // let (command_tx, data_rx) = BinanceMarketFeed::new();
-    // command_tx
-    //     .send(BinanceMarketFeedCommand::LoadHistory)
-    //     .map_err(|e| ftlog::error!("{:?}", e))
-    //     .unwrap_or_default();
-    // while let Ok(computed_data) = data_rx.recv() {
-    //     println!("{:?}", computed_data);
-    // }
+    let event_bus = Arc::new(EventBus::new());
+    let event_topic = "binance_market_feed";
+    let inst = BinanceMarketFeed::new(event_bus.clone(), "indicator_strategy", event_topic);
+    tokio::spawn(async move {
+        inst.run().await.unwrap();
+    });
+    event_bus
+        .publish(event_topic, Event::MarketFeed(MarketFeedEvent::LoadHistory))
+        .unwrap();
+    let data_rx = event_bus.subscribe("indicator_strategy".to_owned());
+    while let Ok(computed_data) = data_rx.recv() {
+        println!("{:?}", computed_data);
+    }
 }

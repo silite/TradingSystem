@@ -11,3 +11,4 @@ chrono     = { workspace = true }
 crossbeam  = { workspace = true }
 anyhow     = { workspace = true }
 dashmap    = { workspace = true }
+ftlog      = { workspace = true }

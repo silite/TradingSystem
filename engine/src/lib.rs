@@ -48,13 +48,13 @@ where
     Execution: Send + 'static,
 {
     pub fn run(self) -> anyhow::Result<()> {
+        ftlog::info!("[engine] {} run.", self.engine_id);
         self.traders.into_iter().for_each(|(market, trade)| {
             tokio::spawn(async move {
-                trade
+                let _ = trade
                     .run()
                     .await
-                    .map_err(|err| ftlog::error!("[trade] trade error. {:?}", err))
-                    .unwrap();
+                    .map_err(|err| ftlog::error!("[trade] run error. {:?}", err));
             });
         });
         Ok(())
