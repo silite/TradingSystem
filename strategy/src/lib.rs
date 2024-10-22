@@ -2,6 +2,7 @@
 #![allow(unused_variables)]
 #![allow(unused_imports)]
 use error::{CloseError, OpenError, PreValidError, RearValidError};
+use protocol::event::MarketEvent;
 use signal::SignalExt;
 
 mod error;
@@ -9,8 +10,11 @@ pub mod implements;
 mod signal;
 
 pub trait StrategyExt {
-    /// 接收信号
-    fn handle_signal(signal: impl SignalExt);
+    /// 接收事件源
+    fn handle_event(
+        self,
+        rx: crossbeam::channel::Receiver<MarketEvent>,
+    ) -> std::thread::JoinHandle<anyhow::Result<()>>;
 
     /// 尝试平仓前要做前置校验，如时间、配置、阈值校验。
     fn pre_valid(&self) -> anyhow::Result<(), PreValidError>;

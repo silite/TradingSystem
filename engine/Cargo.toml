@@ -5,10 +5,12 @@ edition = "2021"
 [dependencies]
 crossbeam      = { workspace = true }
 uuid           = { workspace = true }
+derive_builder = { workspace = true }
+rayon          = { workspace = true }
+anyhow         = { workspace = true }
 conf           = { path = "../conf" }
 protocol       = { path = "../protocol" }
 portfolio      = { path = "../portfolio" }
-derive_builder = { workspace = true }
 trader         = { path = "../trader" }
 market_feed    = { path = "../market_feed" }
 strategy       = { path = "../strategy" }

@@ -26,6 +26,7 @@ where
     Portfolio: BalanceHandler + PositionHandler,
     MarketDataGenerator: MarketGenerator<MarketEvent>,
     Strategy: StrategyExt,
+    Execution: Send,
 {
     /// Used as a unique identifier seed for the Portfolio, Trader & Positions associated with this [`Engine`].
     engine_id: uuid::Uuid,
@@ -33,6 +34,8 @@ where
     market: Market,
     /// receiving [`Command`]s from a remote source.
     command_rx: crossbeam::channel::Receiver<Command>,
+    ///
+    event_tx: crossbeam::channel::Sender<MarketEvent>,
     ///
     portfolio: Portfolio,
     ///
@@ -49,6 +52,7 @@ where
     Portfolio: BalanceHandler + PositionHandler,
     MarketDataGenerator: MarketGenerator<MarketEvent>,
     Strategy: StrategyExt,
+    Execution: Send,
 {
     pub fn new() -> Self {
         todo!()
@@ -63,7 +67,9 @@ where
             }
 
             match self.market_data_generator.next() {
-                Feed::Next(market) => {}
+                Feed::Next(market) => {
+                    println!("{:?}", market);
+                }
                 _ => {
                     ftlog::error!(
                         "[recv market data generator] no handler. {}",

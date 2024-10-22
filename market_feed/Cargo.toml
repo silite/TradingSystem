@@ -11,6 +11,10 @@ crossbeam      = { workspace = true }
 ftlog          = { workspace = true }
 futures        = { workspace = true }
 tokio          = { workspace = true }
+conf           = { path = "../conf" }
 utils          = { path = "../utils" }
 protocol       = { path = "../protocol" }
 db             = { path = "../db" }
+[features]
+dev  = [ "conf/dev" ]
+live = [ "conf/live" ]

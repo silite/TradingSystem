@@ -26,21 +26,23 @@ where
     Portfolio: BalanceHandler + PositionHandler + Clone,
 {
     let (_command_tx, command_rx) = crossbeam::channel::unbounded();
-
+    let (event_tx, event_rx) = crossbeam::channel::unbounded();
     let (binance_market_feed, market_command_tx) = BinanceMarketFeed::new();
+
+    let macd_strategy = MacdStrategyBuilder::default()
+        .event_rx(event_rx)
+        .build()
+        .expect("init macd ver strategy error.");
 
     trader::TraderBuilder::default()
         .engine_id(engine_id)
         .market(market)
+        .event_tx(event_tx)
         .command_rx(command_rx)
         .portfolio(portfolio)
         .market_data_generator(BinanceMarketGenerator::new(market_command_tx))
         .execution(())
-        .strategy(
-            MacdStrategyBuilder::default()
-                .build()
-                .expect("init macd ver strategy error."),
-        )
+        .strategy(macd_strategy)
         .build()
         .expect("init trader error.")
 }

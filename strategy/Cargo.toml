@@ -6,3 +6,5 @@ edition = "2021"
 anyhow         = { workspace = true }
 thiserror      = { workspace = true }
 derive_builder = { workspace = true }
+crossbeam      = { workspace = true }
+protocol       = { path = "../protocol" }

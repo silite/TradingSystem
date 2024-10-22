@@ -12,3 +12,6 @@ crossbeam  = { workspace = true }
 ftlog      = { workspace = true }
 clickhouse = { workspace = true }
 tokio      = { workspace = true }
+[features]
+dev  = [ "conf/dev" ]
+live = [ "conf/live" ]

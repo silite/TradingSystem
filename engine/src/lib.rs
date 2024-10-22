@@ -14,6 +14,7 @@ use protocol::{
     event::{Command, MarketEvent},
     market::Market,
 };
+use rayon::prelude::*;
 use strategy::StrategyExt;
 use trader::Trader;
 
@@ -23,6 +24,7 @@ where
     Portfolio: BalanceHandler + PositionHandler,
     MarketDataGenerator: MarketGenerator<MarketEvent>,
     Strategy: StrategyExt,
+    Execution: Send,
 {
     /// 全局唯一engine_id，索引全局唯一的portfolio，掌管一批traders。
     engine_id: uuid::Uuid,
@@ -40,8 +42,17 @@ where
 impl<Portfolio, MarketDataGenerator, Execution, Strategy>
     Engine<Portfolio, MarketDataGenerator, Execution, Strategy>
 where
-    Portfolio: BalanceHandler + PositionHandler,
-    MarketDataGenerator: MarketGenerator<MarketEvent>,
-    Strategy: StrategyExt,
+    Portfolio: BalanceHandler + PositionHandler + Send + 'static,
+    MarketDataGenerator: MarketGenerator<MarketEvent> + Send + 'static,
+    Strategy: StrategyExt + Send + 'static,
+    Execution: Send + 'static,
 {
+    pub fn run(self) -> anyhow::Result<()> {
+        self.traders.into_iter().for_each(|(market, trade)| {
+            std::thread::spawn(move || {
+                trade.run();
+            });
+        });
+        Ok(())
+    }
 }

@@ -1,6 +1,6 @@
 use std::ops::{Add, Sub};
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct Amount(f64);
 
 impl Add for Amount {
