@@ -34,8 +34,9 @@ derive_builder = "0.20.2"
 serde          = { version = "1.0.210", features = [ "derive" ] }
 serde_json     = "1.0.132"
 yata           = "0.7.0"
-clickhouse     = "0.13.0"
+clickhouse     = "0.13.1"
 futures        = "0.3.31"
+rayon          = "1.10.0"
 [dependencies]
 tokio          = { workspace = true }
 anyhow         = { workspace = true }
@@ -52,3 +53,6 @@ trader         = { path = "trader" }
 market_feed    = { path = "market_feed" }
 strategy       = { path = "strategy" }
 utils          = { path = "utils" }
+[features]
+dev  = [ "conf/dev" ]
+live = [ "conf/live" ]

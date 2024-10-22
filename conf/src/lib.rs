@@ -17,11 +17,24 @@ pub struct Config {
 }
 
 fn init_config() -> anyhow::Result<Config> {
-    let cli: Cli = Cli::parse();
-    let mut settings = config::Config::builder();
-    settings = settings.add_source(config::File::with_name(&cli.config));
-    let config: Config = settings.build()?.try_deserialize()?;
-    Ok(config)
+    #[allow(unused_variables)]
+    let load_settings = || {
+        let cli: Cli = Cli::parse();
+        let mut settings = config::Config::builder();
+        settings = settings.add_source(config::File::with_name(&cli.config));
+        settings
+    };
+    #[cfg(feature = "dev")]
+    let load_settings = || {
+        let mut settings = config::Config::builder();
+        settings = settings.add_source(config::File::with_name(
+            "/Users/siliterong/Project/rust/TradingSystem/conf/dev.toml",
+        ));
+        settings
+    };
+    let settings = load_settings();
+    let web_config: Config = settings.build()?.try_deserialize()?;
+    Ok(web_config)
 }
 
 pub static CONFIG: LazyLock<Config> = LazyLock::new(|| init_config().unwrap());
