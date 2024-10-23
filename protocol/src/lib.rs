@@ -5,5 +5,6 @@
 pub mod event;
 pub mod indictor;
 pub mod market;
+pub mod order;
 pub mod portfolio;
 pub mod trade;

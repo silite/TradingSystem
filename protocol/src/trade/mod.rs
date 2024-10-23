@@ -1,6 +1,6 @@
 pub mod fee;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum Side {
     Buy,
     Sell,
