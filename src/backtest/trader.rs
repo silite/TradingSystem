@@ -7,7 +7,7 @@ use protocol::{
     portfolio::market_data::binance::Kline,
 };
 use strategy::{
-    implements::macd::{MacdStrategy, MacdStrategyBuilder},
+    implements::macd::{MacdStrategy, MacdStrategyBuilder, MacdStrategyConfig},
     StrategyExt,
 };
 use trader::Trader;
@@ -27,6 +27,14 @@ where
 
     let macd_strategy = MacdStrategyBuilder::default()
         .market_feed_topic(indicator_market_feed_topic)
+        .config(MacdStrategyConfig {
+            open_interval: 1000,
+            adx_threshold: 0.1,
+            macd_diff: 0.,
+            rsi_diff: 0.,
+        })
+        .state(Default::default())
+        .bundle_market_indicator(None)
         .build()
         .expect("Init macd strategy error.");
 

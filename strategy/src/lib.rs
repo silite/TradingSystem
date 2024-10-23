@@ -5,13 +5,15 @@ use std::sync::Arc;
 
 use error::{CloseError, OpenError, PreValidError, RearValidError};
 use protocol::event::EventBus;
-use signal::SignalExt;
 
 mod error;
 pub mod implements;
-mod signal;
 
 pub trait StrategyExt {
+    type Config;
+
+    fn init_strategy_config(&mut self, config: Self::Config);
+
     /// 接收事件源
     fn run(self, event_bus: Arc<EventBus>) -> std::thread::JoinHandle<anyhow::Result<()>>;
 
@@ -26,4 +28,17 @@ pub trait StrategyExt {
 
     /// 尝试平仓，平仓优先级大于开仓。
     fn try_close(&self) -> anyhow::Result<(), CloseError>;
+
+    fn common_handler(&self) {
+        let handle = || {
+            self.pre_valid()?;
+            self.try_close().or_else(|_| self.try_open())?;
+            self.rear_valid()?;
+            anyhow::Ok(())
+        };
+        match handle() {
+            Ok(_) => {}
+            Err(e) => {}
+        }
+    }
 }

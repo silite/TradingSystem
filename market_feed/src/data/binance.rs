@@ -130,7 +130,11 @@ impl MarketFeed for BinanceMarketFeed {
                 kind: DataKind::BundleData(bundle_data),
             }),
         ) {
-            ftlog::error!("send computed indicator error {}", e);
+            ftlog::error!(
+                "send computed indicator error {}. topic: {}",
+                e,
+                self.market_tx_topic
+            );
         }
     }
 }
