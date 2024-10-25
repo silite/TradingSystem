@@ -7,6 +7,7 @@ mod machine;
 use std::{
     collections::VecDeque,
     marker::PhantomData,
+    ops::Deref,
     sync::{Arc, Mutex},
 };
 
@@ -21,7 +22,6 @@ use protocol::{
 use strategy::StrategyExt;
 use yata::core::OHLCV;
 
-/// Clone only for Builder.
 #[derive(Builder, Clone)]
 pub struct Trader<Portfolio, Execution, Strategy>
 where
@@ -45,7 +45,7 @@ where
     /// 策略
     strategy: Strategy,
     /// 事件循环队列
-    command_queue: VecDeque<TradeEvent<<Strategy as StrategyExt>::MarketData>>,
+    command_queue: SegQueue<TradeEvent<<Strategy as StrategyExt>::MarketData>>,
 }
 
 impl<Portfolio, Execution, Strategy> Trader<Portfolio, Execution, Strategy>
@@ -64,11 +64,11 @@ where
     pub fn event_loop(mut self) -> anyhow::Result<()> {
         loop {
             if let Ok(market) = self.market_feed_rx.recv() {
-                self.command_queue.push_back(TradeEvent::Market(market));
+                self.command_queue.0.push(TradeEvent::Market(market));
             } else {
             }
 
-            while let Some(event) = self.command_queue.pop_front() {
+            if let Some(event) = self.command_queue.0.pop() {
                 match event {
                     TradeEvent::Market((market_data, indicators)) => {
                         self.strategy.handle_data(market_data, indicators);
@@ -76,5 +76,19 @@ where
                 }
             }
         }
+    }
+}
+
+/// "WARNING", 仅为了Builder，不是真实Clone
+pub struct SegQueue<T>(crossbeam_queue::SegQueue<T>);
+impl<T> Clone for SegQueue<T> {
+    fn clone(&self) -> Self {
+        SegQueue(crossbeam_queue::SegQueue::new())
+    }
+}
+
+impl<T> Default for SegQueue<T> {
+    fn default() -> Self {
+        Self(Default::default())
     }
 }

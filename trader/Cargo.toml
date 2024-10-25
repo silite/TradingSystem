@@ -3,14 +3,15 @@ name    = "trader"
 version = "0.1.0"
 edition = "2021"
 [dependencies]
-uuid           = { workspace = true }
-crossbeam      = { workspace = true }
-derive_builder = { workspace = true }
-ftlog          = { workspace = true }
-tokio          = { workspace = true }
-anyhow         = { workspace = true }
-yata           = { workspace = true }
-protocol       = { path = "../protocol" }
-market_feed    = { path = "../market_feed" }
-portfolio      = { path = "../portfolio" }
-strategy       = { path = "../strategy" }
+uuid            = { workspace = true }
+crossbeam       = { workspace = true }
+derive_builder  = { workspace = true }
+ftlog           = { workspace = true }
+tokio           = { workspace = true }
+anyhow          = { workspace = true }
+yata            = { workspace = true }
+crossbeam-queue = { workspace = true }
+protocol        = { path = "../protocol" }
+market_feed     = { path = "../market_feed" }
+portfolio       = { path = "../portfolio" }
+strategy        = { path = "../strategy" }

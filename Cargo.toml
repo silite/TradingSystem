@@ -22,23 +22,24 @@ name    = "trading-system"
 version = "0.1.0"
 edition = "2021"
 [workspace.dependencies]
-anyhow         = "1.0.90"
-chrono         = "0.4.38"
-crossbeam      = "0.8.4"
-ftlog          = "0.2.14"
-itertools      = "0.13.0"
-thiserror      = "1.0.64"
-uuid           = { version = "1.11.0", features = [ "v4" ] }
-tokio          = { version = "1.40.0", features = [ "macros", "rt", "rt-multi-thread" ] }
-derive_builder = "0.20.2"
-serde          = { version = "1.0.210", features = [ "derive" ] }
-serde_json     = "1.0.132"
-yata           = "0.7.0"
-clickhouse     = "0.13.1"
-futures        = "0.3.31"
-rayon          = "1.10.0"
-dashmap        = "6.1.0"
-circular-queue = "0.2.6"
+anyhow          = "1.0.90"
+chrono          = "0.4.38"
+crossbeam       = "0.8.4"
+ftlog           = "0.2.14"
+itertools       = "0.13.0"
+thiserror       = "1.0.64"
+uuid            = { version = "1.11.0", features = [ "v4" ] }
+tokio           = { version = "1.40.0", features = [ "macros", "rt", "rt-multi-thread" ] }
+derive_builder  = "0.20.2"
+serde           = { version = "1.0.210", features = [ "derive" ] }
+serde_json      = "1.0.132"
+yata            = "0.7.0"
+clickhouse      = "0.13.1"
+futures         = "0.3.31"
+rayon           = "1.10.0"
+dashmap         = "6.1.0"
+circular-queue  = "0.2.6"
+crossbeam-queue = "0.3.11"
 [dependencies]
 tokio          = { workspace = true }
 anyhow         = { workspace = true }
