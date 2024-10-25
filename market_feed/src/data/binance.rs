@@ -9,7 +9,7 @@ use crossbeam::channel::{Receiver, Sender};
 use derive_builder::Builder;
 use futures::FutureExt;
 use protocol::{
-    event::{DataKind, Event, EventBus, MarketDataEvent, MarketFeedEvent},
+    event::{bus::EventBus, DataKind, Event, MarketDataEvent, MarketFeedEvent},
     indictor::Indicators,
     portfolio::market_data::binance::Kline,
 };

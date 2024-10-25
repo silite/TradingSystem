@@ -6,7 +6,7 @@
 
 use std::{process::Command, sync::Arc};
 
-use protocol::event::EventBus;
+use protocol::event::bus::EventBus;
 use tokio::sync::mpsc;
 use yata::core::OHLCV;
 

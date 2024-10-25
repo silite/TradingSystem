@@ -2,7 +2,7 @@ use std::{sync::Arc, thread::JoinHandle};
 
 use derive_builder::Builder;
 use protocol::{
-    event::EventBus, indictor::Indicators, portfolio::market_data::binance::Kline, trade::Side,
+    event::bus::EventBus, indictor::Indicators, portfolio::market_data::binance::Kline, trade::Side,
 };
 use yata::core::OHLCV;
 

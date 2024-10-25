@@ -4,7 +4,7 @@
 use std::sync::Arc;
 
 use error::{CloseError, OpenError, PreValidError, RearValidError};
-use protocol::{event::EventBus, indictor::Indicators};
+use protocol::{event::bus::EventBus, indictor::Indicators};
 use yata::{core::OHLCV, indicators};
 
 mod error;

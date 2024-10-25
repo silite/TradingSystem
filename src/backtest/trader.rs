@@ -3,7 +3,8 @@ use std::sync::Arc;
 use market_feed::{data::binance::BinanceMarketFeed, MarketFeed};
 use portfolio::{balance::BalanceHandler, position::PositionHandler};
 use protocol::{
-    event::EventBus, indictor::Indicators, market::Market, portfolio::market_data::binance::Kline,
+    event::bus::EventBus, indictor::Indicators, market::Market,
+    portfolio::market_data::binance::Kline,
 };
 use strategy::{
     implements::macd::{MacdStrategy, MacdStrategyBuilder, MacdStrategyConfig},

@@ -1,7 +1,7 @@
 use std::{collections::HashMap, sync::Arc, thread::sleep, time::Duration};
 
 use protocol::{
-    event::{EventBus, MarketFeedEvent},
+    event::{bus::EventBus, MarketFeedEvent},
     market::{InstrumentKind, Market},
 };
 

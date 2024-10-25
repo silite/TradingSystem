@@ -11,7 +11,7 @@ use derive_builder::Builder;
 use market_feed::MarketFeed;
 use portfolio::{balance::BalanceHandler, position::PositionHandler};
 use protocol::{
-    event::{Event, EventBus},
+    event::{bus::EventBus, Event},
     market::Market,
 };
 use strategy::StrategyExt;
