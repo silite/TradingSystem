@@ -63,6 +63,7 @@ where
     /// 事件循环
     pub fn event_loop(mut self) -> anyhow::Result<()> {
         loop {
+            // FIXME 将market_feed移到单独线程
             if let Ok(market) = self.market_feed_rx.recv() {
                 self.command_queue.0.push(TradeEvent::Market(market));
             } else {
