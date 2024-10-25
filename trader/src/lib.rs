@@ -49,10 +49,7 @@ where
     Strategy: StrategyExt + Send + 'static,
     Execution: Send,
 {
-    pub fn new() -> Self {
-        todo!()
-    }
-
+    /// trader.run时，策略也要run，监听事件。market_feed.run晚于strategy.run。
     pub async fn run(self) -> anyhow::Result<()> {
         ftlog::info!("[trade] {} {:?} run.", self.engine_id, self.market);
 
@@ -68,16 +65,18 @@ where
         });
         start_rx.await?;
 
-        let event_rx = self
+        let mut event_rx = self
             .event_bus
-            .subscribe(format!("{:?}-trader", self.market));
+            .subscribe_sync(format!("{:?}-trader", self.market));
         'trading: loop {
-            if let Ok(command) = event_rx.recv() {
-                match command {
-                    Event::Command(command_event) => match command_event {
-                        protocol::event::CommandEvent::Terminate(_) => break 'trading,
-                    },
-                    _ => unreachable!(),
+            tokio::select! {
+                Some(command) = event_rx.recv() => {
+                    match command {
+                        Event::Command(command_event) => match command_event {
+                            protocol::event::CommandEvent::Terminate(_) => break 'trading,
+                        },
+                        _ => unreachable!(),
+                    }
                 }
             }
         }

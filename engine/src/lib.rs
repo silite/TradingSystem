@@ -47,6 +47,7 @@ where
     Strategy: StrategyExt + Send + 'static,
     Execution: Send + 'static,
 {
+    /// engine托管多个trader，engine.run时执行每个trader的run
     pub fn run(self) -> anyhow::Result<()> {
         ftlog::info!("[engine] {} run.", self.engine_id);
         self.traders.into_iter().for_each(|(market, trade)| {
