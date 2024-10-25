@@ -42,5 +42,5 @@ pub trait MarketFeed: Sized {
     fn is_linked(&self) -> bool;
 
     /// 计算指标
-    fn computed_indicator(&mut self, data: &Self::MarketData);
+    fn computed_indicator(&mut self, market_data: Self::MarketData);
 }

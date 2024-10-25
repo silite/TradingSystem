@@ -4,18 +4,22 @@
 use std::sync::Arc;
 
 use error::{CloseError, OpenError, PreValidError, RearValidError};
-use protocol::event::EventBus;
+use protocol::{event::EventBus, indictor::Indicators};
+use yata::{core::OHLCV, indicators};
 
 mod error;
 pub mod implements;
 
 pub trait StrategyExt {
+    type MarketData: OHLCV;
     type Config;
 
     fn init_strategy_config(&mut self, config: Self::Config);
 
     /// 接收事件源
     fn run(self, event_bus: Arc<EventBus>) -> std::thread::JoinHandle<anyhow::Result<()>>;
+
+    fn handle_data(&mut self, market_data: Self::MarketData, indicators: Indicators);
 
     /// 尝试平仓前要做前置校验，如时间、配置、阈值校验。
     fn pre_valid(&self) -> anyhow::Result<(), PreValidError>;
@@ -37,7 +41,9 @@ pub trait StrategyExt {
             anyhow::Ok(())
         };
         match handle() {
-            Ok(_) => {}
+            Ok(_) => {
+                ftlog::info!("open success.");
+            }
             Err(e) => {}
         }
     }

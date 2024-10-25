@@ -3,8 +3,7 @@ use std::sync::Arc;
 use market_feed::{data::binance::BinanceMarketFeed, MarketFeed};
 use portfolio::{balance::BalanceHandler, position::PositionHandler};
 use protocol::{
-    event::EventBus, indictor::BundleMarketIndicator, market::Market,
-    portfolio::market_data::binance::Kline,
+    event::EventBus, indictor::Indicators, market::Market, portfolio::market_data::binance::Kline,
 };
 use strategy::{
     implements::macd::{MacdStrategy, MacdStrategyBuilder, MacdStrategyConfig},
@@ -34,7 +33,8 @@ where
             rsi_diff: 0.,
         })
         .state(Default::default())
-        .bundle_market_indicator(None)
+        .indicators(None)
+        .market_data(None)
         .build()
         .expect("Init macd strategy error.");
 

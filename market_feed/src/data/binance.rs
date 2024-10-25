@@ -10,7 +10,7 @@ use derive_builder::Builder;
 use futures::FutureExt;
 use protocol::{
     event::{DataKind, Event, EventBus, MarketDataEvent, MarketFeedEvent},
-    indictor::BundleMarketIndicator,
+    indictor::Indicators,
     portfolio::market_data::binance::Kline,
 };
 use tokio::sync::{mpsc, oneshot};
@@ -81,7 +81,7 @@ impl MarketFeed for BinanceMarketFeed {
         start_rx.await?;
 
         while let Ok(kline) = rx.recv() {
-            self.computed_indicator(&kline);
+            self.computed_indicator(kline);
         }
 
         let data_cnt = select_join.await??;
@@ -97,22 +97,21 @@ impl MarketFeed for BinanceMarketFeed {
         todo!()
     }
 
-    fn computed_indicator(&mut self, data: &Self::MarketData) {
-        let dc = self.indicators.dc.push(data).get();
-        let rsi = self.indicators.rsi.push(data).get();
-        let ema = self.indicators.ema.push(data).get();
+    fn computed_indicator(&mut self, market_data: Self::MarketData) {
+        let dc = self.indicators.dc.push(&market_data).get();
+        let rsi = self.indicators.rsi.push(&market_data).get();
+        let ema = self.indicators.ema.push(&market_data).get();
         let stoch_rsi = self.indicators.stock_rsi.push(rsi).get(rsi);
-        let adx = self.indicators.adx.push(data).get();
-        let macd = self.indicators.macd.push(data).get();
-        let tr = self.indicators.tr.push(data).get();
+        let adx = self.indicators.adx.push(&market_data).get();
+        let macd = self.indicators.macd.push(&market_data).get();
+        let tr = self.indicators.tr.push(&market_data).get();
         let tr_rma = self.indicators.tr_rma.push(tr).get();
 
-        let atr_low = data.low - self.indicators.pre_tr_rma * 1.5;
-        let atr_high = self.indicators.pre_tr_rma * 1.5 + data.high;
+        let atr_low = market_data.low - self.indicators.pre_tr_rma * 1.5;
+        let atr_high = self.indicators.pre_tr_rma * 1.5 + market_data.high;
         self.indicators.pre_tr_rma = tr_rma;
 
-        let bundle_data = BundleMarketIndicator {
-            market_data: data.clone(),
+        let indicators = Indicators {
             dc,
             rsi,
             ema,
@@ -127,7 +126,7 @@ impl MarketFeed for BinanceMarketFeed {
         if let Err(e) = self.event_bus.publish(
             self.market_tx_topic,
             Event::MarketData(MarketDataEvent {
-                kind: DataKind::BundleData(bundle_data),
+                kind: DataKind::BundleData((market_data, indicators)),
             }),
         ) {
             ftlog::error!(

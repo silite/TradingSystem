@@ -8,4 +8,5 @@ thiserror      = { workspace = true }
 derive_builder = { workspace = true }
 crossbeam      = { workspace = true }
 ftlog          = { workspace = true }
+yata           = { workspace = true }
 protocol       = { path = "../protocol" }

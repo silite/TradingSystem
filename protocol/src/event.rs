@@ -4,7 +4,7 @@ use chrono::{DateTime, Utc};
 use dashmap::DashMap;
 
 use crate::{
-    indictor::BundleMarketIndicator,
+    indictor::Indicators,
     market::{exchange::Exchange, symbol::Instrument},
     portfolio::market_data::binance::Kline,
 };
@@ -103,7 +103,7 @@ pub struct MarketDataEvent<T = DataKind> {
 #[derive(Debug, Clone)]
 pub enum DataKind {
     Kline(Kline),
-    BundleData(BundleMarketIndicator),
+    BundleData((Kline, Indicators)),
 }
 
 #[derive(Debug)]
