@@ -2,7 +2,8 @@ use std::{sync::Arc, thread::JoinHandle};
 
 use derive_builder::Builder;
 use protocol::{
-    event::bus::EventBus, indictor::Indicators, portfolio::market_data::binance::Kline, trade::Side,
+    event::bus::CommandBus, indictor::Indicators, portfolio::market_data::binance::Kline,
+    trade::Side,
 };
 use yata::core::OHLCV;
 
@@ -43,26 +44,26 @@ impl StrategyExt for MacdStrategy {
         self.config = config;
     }
 
-    fn run(mut self, event_bus: Arc<EventBus>) -> JoinHandle<anyhow::Result<()>> {
-        ftlog::info!("[strategy] macd strategy run.");
-        let event_rs = event_bus.subscribe(self.market_feed_topic.to_owned());
-        std::thread::spawn(move || {
-            while let Ok(event) = event_rs.recv() {
-                match event {
-                    protocol::event::Event::MarketData(market_data_event) => {
-                        match market_data_event.kind {
-                            protocol::event::DataKind::Kline(kline) => todo!(),
-                            protocol::event::DataKind::BundleData((market_data, indicators)) => {
-                                self.handle_data(market_data, indicators);
-                            }
-                        }
-                    }
-                    _ => unreachable!(),
-                }
-            }
-            Ok(())
-        })
-    }
+    // fn run(mut self, command_bus: Arc<CommandBus>) -> JoinHandle<anyhow::Result<()>> {
+    // ftlog::info!("[strategy] macd strategy run.");
+    // let command_rs = command_bus.subscribe(self.market_feed_topic.to_owned());
+    // std::thread::spawn(move || {
+    //     while let Some(event) = command_rs.recv() {
+    //         match event {
+    //             protocol::event::Event::MarketData(market_data_event) => {
+    //                 match market_data_event.kind {
+    //                     protocol::event::DataKind::Kline(kline) => todo!(),
+    //                     protocol::event::DataKind::BundleData((market_data, indicators)) => {
+    //                         self.handle_data(market_data, indicators);
+    //                     }
+    //                 }
+    //             }
+    //             _ => unreachable!(),
+    //         }
+    //     }
+    //     Ok(())
+    // })
+    // }
 
     fn pre_valid(&self) -> anyhow::Result<(), crate::error::PreValidError> {
         Ok(())

@@ -4,20 +4,17 @@
 use std::sync::Arc;
 
 use error::{CloseError, OpenError, PreValidError, RearValidError};
-use protocol::{event::bus::EventBus, indictor::Indicators};
+use protocol::{event::bus::CommandBus, indictor::Indicators};
 use yata::{core::OHLCV, indicators};
 
 mod error;
 pub mod implements;
 
 pub trait StrategyExt {
-    type MarketData: OHLCV;
+    type MarketData: OHLCV + Send + Clone;
     type Config;
 
     fn init_strategy_config(&mut self, config: Self::Config);
-
-    /// 接收事件源
-    fn run(self, event_bus: Arc<EventBus>) -> std::thread::JoinHandle<anyhow::Result<()>>;
 
     fn handle_data(&mut self, market_data: Self::MarketData, indicators: Indicators);
 

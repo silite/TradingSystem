@@ -3,7 +3,7 @@ use std::sync::Arc;
 use market_feed::{data::binance::BinanceMarketFeed, MarketFeed};
 use portfolio::{balance::BalanceHandler, position::PositionHandler};
 use protocol::{
-    event::bus::EventBus, indictor::Indicators, market::Market,
+    event::bus::CommandBus, indictor::Indicators, market::Market,
     portfolio::market_data::binance::Kline,
 };
 use strategy::{
@@ -17,13 +17,13 @@ pub async fn init_binance_trader<Portfolio>(
     engine_id: Uuid,
     market: Market,
     portfolio: Portfolio,
-    event_bus: Arc<EventBus>,
-) -> Trader<Portfolio, BinanceMarketFeed, (), MacdStrategy>
+    command_bus: Arc<CommandBus>,
+) -> Trader<Portfolio, (), MacdStrategy>
 where
     Portfolio: BalanceHandler + PositionHandler + Clone,
 {
     let indicator_market_feed_topic = "indicator_strategy";
-    let market_feed_event_topic = "binance_market_feed";
+    let market_feed_command_topic = "binance_market_feed";
 
     let macd_strategy = MacdStrategyBuilder::default()
         .market_feed_topic(indicator_market_feed_topic)
@@ -42,13 +42,13 @@ where
     trader::TraderBuilder::default()
         .engine_id(engine_id)
         .market(market)
-        .event_bus(event_bus.clone())
+        .command_bus(command_bus.clone())
         .portfolio(portfolio)
-        .market_feed(BinanceMarketFeed::new(
-            event_bus.clone(),
-            indicator_market_feed_topic,
-            market_feed_event_topic,
+        .market_feed_rx(BinanceMarketFeed::new(
+            command_bus.clone(),
+            market_feed_command_topic,
         ))
+        .command_queue(Default::default())
         .execution(())
         .strategy(macd_strategy)
         .build()

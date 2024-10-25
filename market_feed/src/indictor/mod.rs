@@ -34,11 +34,11 @@ pub trait Indicator {
     }
 }
 
-/// 指标集合。
+/// 用于计算中间过程的指标集合。
 /// FIXME 可能会有一些用不到的指标。
 /// Clone only for Builder.
 #[derive(Clone)]
-pub struct IndicatorsCollection {
+pub struct ComputedIndicators {
     pub dc: DC,
     pub rsi: RSI,
     pub ema: EMA,
@@ -50,7 +50,7 @@ pub struct IndicatorsCollection {
     pub pre_tr_rma: f64,
 }
 
-impl IndicatorsCollection {
+impl ComputedIndicators {
     pub fn new() -> Self {
         Self {
             dc: DC::new(None),

@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use protocol::event::MarketFeedEvent;
+use protocol::event::MarketFeedCommand;
 use utils::logs;
 
 mod engine;
@@ -13,13 +13,13 @@ pub async fn start() -> anyhow::Result<()> {
     logs::logs_guard();
 
     //
-    let event_bus = engine::start_engine().await?;
+    let command_bus = engine::start_engine().await?;
 
     std::thread::sleep(Duration::from_secs(5));
-    event_bus
+    command_bus
         .publish(
             "binance_market_feed",
-            protocol::event::Event::MarketFeed(MarketFeedEvent::LoadHistory),
+            protocol::event::Command::MarketFeed(MarketFeedCommand::LoadHistory),
         )
         .unwrap();
 

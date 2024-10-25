@@ -2,6 +2,7 @@ use std::{collections::HashMap, marker::PhantomData};
 
 use chrono::{DateTime, Utc};
 use dashmap::DashMap;
+use yata::core::OHLCV;
 
 use crate::{
     indictor::Indicators,
@@ -11,18 +12,15 @@ use crate::{
 
 pub mod bus;
 
-#[derive(Debug)]
-pub enum Event {
-    MarketData(MarketDataEvent),
-    MarketFeed(MarketFeedEvent),
-    TradeExecution(),
-    PortfolioUpdate(),
-    Command(CommandEvent),
+#[derive(Debug, Clone)]
+pub enum TradeEvent<MarketData: OHLCV> {
+    Market((MarketData, Indicators)),
 }
 
 #[derive(Debug)]
-pub enum CommandEvent {
+pub enum Command {
     Terminate(String),
+    MarketFeed(MarketFeedCommand),
 }
 
 /// Normalised Barter [`MarketEvent<T>`](Self) wrapping the `T` data variant in metadata.
@@ -63,7 +61,7 @@ pub enum DataKind {
 }
 
 #[derive(Debug)]
-pub enum MarketFeedEvent {
+pub enum MarketFeedCommand {
     /// 读取历史所有行情
     LoadHistory,
 }

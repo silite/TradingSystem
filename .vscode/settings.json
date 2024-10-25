@@ -1,7 +1,8 @@
 {
     "cSpell.words": [
         "OHLCV",
-        "outfile"
+        "outfile",
+        "statemachine"
     ],
     "rust-analyzer.cargo.features": [
         "dev",

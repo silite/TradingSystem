@@ -9,6 +9,7 @@ derive_builder = { workspace = true }
 ftlog          = { workspace = true }
 tokio          = { workspace = true }
 anyhow         = { workspace = true }
+yata           = { workspace = true }
 protocol       = { path = "../protocol" }
 market_feed    = { path = "../market_feed" }
 portfolio      = { path = "../portfolio" }

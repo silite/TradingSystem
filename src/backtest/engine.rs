@@ -1,42 +1,42 @@
 use std::{collections::HashMap, sync::Arc, thread::sleep, time::Duration};
 
 use protocol::{
-    event::{bus::EventBus, MarketFeedEvent},
+    event::{bus::CommandBus, MarketFeedCommand},
     market::{InstrumentKind, Market},
 };
 
 use super::{portfolio::init_portfolio, trader::init_binance_trader};
 
-pub async fn start_engine() -> anyhow::Result<Arc<EventBus>> {
+pub async fn start_engine() -> anyhow::Result<Arc<CommandBus>> {
     let engine_id = uuid::Uuid::new_v4();
     let market = Market::new("binance", ("btc", "usdt", InstrumentKind::Future));
     let portfolio = init_portfolio(engine_id, market.clone());
-    let event_bus = Arc::new(EventBus::new());
+    let command_bus = Arc::new(CommandBus::new());
 
     engine::EngineBuilder::default()
         .engine_id(engine_id)
-        .event_bus(event_bus.clone())
+        .command_bus(command_bus.clone())
         .config(conf::CONFIG.clone())
         .portfolio(HashMap::from([(market.clone(), portfolio.clone())]))
         .traders(HashMap::from([(
             market.clone(),
-            init_binance_trader(engine_id, market, portfolio, event_bus.clone()).await,
+            init_binance_trader(engine_id, market, portfolio, command_bus.clone()).await,
         )]))
         .build()?
         .run()?;
 
-    Ok(event_bus)
+    Ok(command_bus)
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 8)]
 async fn test_start_engine() {
     utils::logs::logs_guard();
-    let event_bus = start_engine().await.unwrap();
+    let command_bus = start_engine().await.unwrap();
     sleep(Duration::from_secs(5));
-    event_bus
+    command_bus
         .publish(
             "binance_market_feed",
-            protocol::event::Event::MarketFeed(MarketFeedEvent::LoadHistory),
+            protocol::event::Command::MarketFeed(MarketFeedCommand::LoadHistory),
         )
         .unwrap();
     loop {}

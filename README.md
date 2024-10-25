@@ -1,6 +1,3 @@
-#### 交易系统拓扑图
-![交易系统拓扑](./asserts/TradingSystem.drawio.png)
-Engine可以托管多个Trader
 #### 基础行情数据来源
 ##### binance
 [binance基础数据仓库](https://github.com/binance/binance-public-data?tab=readme-ov-file)
@@ -28,3 +25,4 @@ Engine可以托管多个Trader
 原始的逐笔交易数据。
 
 [BTCUSDT/1m/kline](https://data.binance.vision/?prefix=data/futures/um/daily/klines/BTCUSDT/1m/)
+

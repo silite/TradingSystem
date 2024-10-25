@@ -6,7 +6,10 @@
 
 use std::{process::Command, sync::Arc};
 
-use protocol::event::bus::EventBus;
+use protocol::{
+    event::{bus::CommandBus, TradeEvent},
+    indictor::Indicators,
+};
 use tokio::sync::mpsc;
 use yata::core::OHLCV;
 
@@ -17,18 +20,17 @@ pub mod indictor;
 /// 先`接收互联网行情`，保证一直接收最新数据。然后`从头load所有历史数据`接上断点后，行情才能连续，保证使用正确。
 #[allow(async_fn_in_trait)]
 pub trait MarketFeed: Sized {
-    /// 原始行情
-    type MarketData: OHLCV;
+    /// 原始行情，Clone为了可以使用builder
+    type MarketData: OHLCV + Clone + Send;
 
-    // 返回指令接受 和 数据推送channel
+    //
     fn new(
-        event_bus: Arc<EventBus>,
-        market_tx_topic: &'static str,
-        event_topic: &'static str,
-    ) -> Self;
+        command_bus: Arc<CommandBus>,
+        command_topic: &'static str,
+    ) -> crossbeam::channel::Receiver<(Self::MarketData, Indicators)>;
 
     /// 相应command
-    fn run(self) -> impl std::future::Future<Output = anyhow::Result<()>> + Send;
+    fn run(&mut self) -> impl std::future::Future<Output = anyhow::Result<()>> + Send;
 
     /// 从头load所有历史行情，因为指标需要从头开始计算
     /// 这里优雅停机后，可以将需要的指标缓存，这样可以断点恢复

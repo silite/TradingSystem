@@ -38,6 +38,7 @@ clickhouse     = "0.13.1"
 futures        = "0.3.31"
 rayon          = "1.10.0"
 dashmap        = "6.1.0"
+circular-queue = "0.2.6"
 [dependencies]
 tokio          = { workspace = true }
 anyhow         = { workspace = true }
