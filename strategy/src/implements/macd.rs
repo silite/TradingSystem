@@ -2,7 +2,10 @@ use std::{sync::Arc, thread::JoinHandle};
 
 use derive_builder::Builder;
 use protocol::{
-    event::bus::CommandBus, indictor::Indicators, portfolio::market_data::binance::Kline,
+    event::bus::CommandBus,
+    indictor::Indicators,
+    order::{Order, OrderBuilder, OrderRequest, OrderType},
+    portfolio::market_data::binance::Kline,
     trade::Side,
 };
 use yata::core::OHLCV;
@@ -18,6 +21,7 @@ pub struct MacdStrategyConfig {
     pub adx_threshold: f64,
     pub macd_diff: f64,
     pub rsi_diff: f64,
+    pub atr_scaling: f64,
 }
 
 #[derive(Debug, Default, Clone)]
@@ -44,27 +48,6 @@ impl StrategyExt for MacdStrategy {
         self.config = config;
     }
 
-    // fn run(mut self, command_bus: Arc<CommandBus>) -> JoinHandle<anyhow::Result<()>> {
-    // ftlog::info!("[strategy] macd strategy run.");
-    // let command_rs = command_bus.subscribe(self.market_feed_topic.to_owned());
-    // std::thread::spawn(move || {
-    //     while let Some(event) = command_rs.recv() {
-    //         match event {
-    //             protocol::event::Event::MarketData(market_data_event) => {
-    //                 match market_data_event.kind {
-    //                     protocol::event::DataKind::Kline(kline) => todo!(),
-    //                     protocol::event::DataKind::BundleData((market_data, indicators)) => {
-    //                         self.handle_data(market_data, indicators);
-    //                     }
-    //                 }
-    //             }
-    //             _ => unreachable!(),
-    //         }
-    //     }
-    //     Ok(())
-    // })
-    // }
-
     fn pre_valid(&self) -> anyhow::Result<(), crate::error::PreValidError> {
         Ok(())
     }
@@ -73,7 +56,7 @@ impl StrategyExt for MacdStrategy {
         Ok(())
     }
 
-    fn try_open(&self) -> anyhow::Result<(), OpenError> {
+    fn try_open(&self) -> anyhow::Result<OrderRequest, OpenError> {
         let market_data = self.market_data.as_ref().unwrap();
         let indicators = self.indicators.as_ref().unwrap();
         let config = &self.config;
@@ -99,7 +82,7 @@ impl StrategyExt for MacdStrategy {
                 && last_stoch_rsi_diff * stoch_rsi_diff > 0.
                 && stoch_rsi_diff > last_stoch_rsi_diff
             {
-                return Ok(());
+                return Ok(self.build_order(Side::Buy, &market_data, &indicators, &self.config)?);
             }
             return Err(OpenError::StochRSIOversoldIncompatible(k, d));
         }
@@ -114,7 +97,12 @@ impl StrategyExt for MacdStrategy {
                     && stoch_rsi_diff.abs() > last_stoch_rsi_diff.abs())
                     || last_macd_diff * stoch_rsi_diff < 0.)
             {
-                return Ok(());
+                return Ok(self.build_order(
+                    Side::Sell,
+                    &market_data,
+                    &indicators,
+                    &self.config,
+                )?);
             }
             return Err(OpenError::StochRSIOverboughtIncompatible(k, d));
         }
@@ -127,19 +115,73 @@ impl StrategyExt for MacdStrategy {
         ))
     }
 
-    fn try_close(&self) -> anyhow::Result<(), CloseError> {
+    fn try_close(&self) -> anyhow::Result<OrderRequest, CloseError> {
         Err(CloseError::Test)
     }
 
-    fn handle_data(&mut self, market_data: Self::MarketData, indicators: Indicators) {
+    // TODO 暂时Taker
+    fn build_order(
+        &self,
+        side: Side,
+        market_data: &Self::MarketData,
+        indicators: &Indicators,
+        config: &Self::Config,
+    ) -> anyhow::Result<OrderRequest> {
+        let (price, atr) = if matches!(side, Side::Buy) {
+            (
+                market_data.high,
+                (indicators.atr.0 * config.atr_scaling, indicators.atr.1),
+            )
+        } else {
+            (
+                market_data.low,
+                (indicators.atr.1 * config.atr_scaling, indicators.atr.0),
+            )
+        };
+
+        Ok(OrderRequest {
+            main_order: OrderBuilder::default()
+                .side(side)
+                .order_type(OrderType::Limit)
+                .quantity(100)
+                // TODO
+                .price(Some(price))
+                .build()?,
+            take_profit: Some(
+                OrderBuilder::default()
+                    .side(!side)
+                    .order_type(OrderType::Limit)
+                    .quantity(100)
+                    .price(Some(atr.0))
+                    .build()?,
+            ),
+            stop_loss: Some(
+                OrderBuilder::default()
+                    .side(side)
+                    .order_type(OrderType::Market)
+                    .quantity(100)
+                    .price(Some(atr.1))
+                    .build()?,
+            ),
+        })
+    }
+
+    fn handle_data(
+        &mut self,
+        market_data: Self::MarketData,
+        indicators: Indicators,
+    ) -> anyhow::Result<OrderRequest> {
         let stoch_rsi_diff = indicators.stoch_rsi.k - indicators.stoch_rsi.d;
         let macd_diff = indicators.macd.0 - indicators.macd.1;
 
         self.indicators = Some(indicators);
         self.market_data = Some(market_data);
-        self.common_handler();
+
+        let order_req = self.common_handler();
 
         self.state.last_stoch_rsi_diff = stoch_rsi_diff;
         self.state.last_macd_diff = macd_diff;
+
+        order_req
     }
 }

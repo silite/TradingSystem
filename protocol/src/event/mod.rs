@@ -7,6 +7,7 @@ use yata::core::OHLCV;
 use crate::{
     indictor::Indicators,
     market::{exchange::Exchange, symbol::Instrument},
+    order::OrderRequest,
     portfolio::market_data::binance::Kline,
 };
 
@@ -15,6 +16,8 @@ pub mod bus;
 #[derive(Debug, Clone)]
 pub enum TradeEvent<MarketData: OHLCV> {
     Market((MarketData, Indicators)),
+    OrderNew(OrderRequest),
+    OrderUpdate,
 }
 
 #[derive(Debug)]

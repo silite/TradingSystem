@@ -1,3 +1,5 @@
+use derive_builder::Builder;
+
 use crate::{market::symbol::Instrument, trade::Side};
 
 #[derive(Debug, Clone)]
@@ -7,9 +9,8 @@ pub struct OrderRequest {
     pub stop_loss: Option<Order>,   // 止损单
 }
 
-#[derive(Debug, Clone)]
+#[derive(Builder, Debug, Clone)]
 pub struct Order {
-    pub symbol: Instrument,
     pub side: Side,
     pub order_type: OrderType,
     pub quantity: i32,

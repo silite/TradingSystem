@@ -69,11 +69,20 @@ where
             } else {
             }
 
+            // FIXME 将event_loop移到单独线程
             if let Some(event) = self.command_queue.0.pop() {
                 match event {
                     TradeEvent::Market((market_data, indicators)) => {
-                        self.strategy.handle_data(market_data, indicators);
+                        if let Ok(order_req) = self.strategy.handle_data(market_data, indicators) {
+                            self.command_queue.0.push(TradeEvent::OrderNew(order_req));
+                        } else {
+                            // 策略尝试开单失败
+                        }
                     }
+                    TradeEvent::OrderNew(order_request) => {
+                        
+                    }
+                    TradeEvent::OrderUpdate => todo!(),
                 }
             }
         }

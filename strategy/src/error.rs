@@ -26,6 +26,14 @@ pub enum OpenError {
     MACDInsufficient,
     #[error("可用资金不足")]
     AvailableFundInsufficient,
+    #[error("构建订单失败: {0}")]
+    BuildOrderError(String),
+}
+
+impl From<anyhow::Error> for OpenError {
+    fn from(err: anyhow::Error) -> Self {
+        OpenError::BuildOrderError(err.to_string())
+    }
 }
 
 #[derive(Error, Debug)]

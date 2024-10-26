@@ -32,6 +32,7 @@ where
             adx_threshold: 0.1,
             macd_diff: 0.,
             rsi_diff: 0.,
+            atr_scaling: 2.0,
         })
         .state(Default::default())
         .indicators(None)
