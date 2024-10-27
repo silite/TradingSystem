@@ -4,7 +4,6 @@ use protocol::event::MarketFeedCommand;
 use utils::logs;
 
 mod engine;
-mod matching;
 mod portfolio;
 mod trader;
 

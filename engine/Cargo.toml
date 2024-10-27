@@ -16,3 +16,4 @@ portfolio      = { path = "../portfolio" }
 trader         = { path = "../trader" }
 market_feed    = { path = "../market_feed" }
 strategy       = { path = "../strategy" }
+execution      = { path = "../execution" }

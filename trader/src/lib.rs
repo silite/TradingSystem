@@ -8,10 +8,12 @@ use std::{
     collections::VecDeque,
     marker::PhantomData,
     ops::Deref,
+    os::unix::process::ExitStatusExt,
     sync::{Arc, Mutex},
 };
 
 use derive_builder::Builder;
+use execution::ExecutionExt;
 use market_feed::{indictor, MarketFeed};
 use portfolio::{balance::BalanceHandler, position::PositionHandler};
 use protocol::{
@@ -27,7 +29,7 @@ pub struct Trader<Portfolio, Execution, Strategy>
 where
     Portfolio: BalanceHandler + PositionHandler,
     Strategy: StrategyExt,
-    Execution: Send,
+    Execution: ExecutionExt,
 {
     /// Used as a unique identifier seed for the Portfolio, Trader & Positions associated with this [`Engine`].
     engine_id: uuid::Uuid,
@@ -52,7 +54,7 @@ impl<Portfolio, Execution, Strategy> Trader<Portfolio, Execution, Strategy>
 where
     Portfolio: BalanceHandler + PositionHandler + Send + 'static,
     Strategy: StrategyExt + Send + 'static,
-    Execution: Send + 'static,
+    Execution: ExecutionExt + Send + 'static,
 {
     /// trader.run时，策略也要run，监听事件。market_feed.run晚于strategy.run。
     pub async fn run(self) -> anyhow::Result<()> {
@@ -80,6 +82,7 @@ where
                         }
                     }
                     TradeEvent::OrderNew(order_request) => {
+                        // 锁资
                         if let Some(price) = order_request.main_order.price {
                             let amount = price * order_request.main_order.volume;
                             if let Err(err) = self.portfolio.diff_freezed_balance(amount) {
@@ -87,6 +90,9 @@ where
                                 continue;
                             }
                         }
+
+                        // 下单
+                        // self.execution
                     }
                     TradeEvent::OrderUpdate => todo!(),
                 }

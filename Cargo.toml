@@ -56,6 +56,7 @@ trader         = { path = "trader" }
 market_feed    = { path = "market_feed" }
 strategy       = { path = "strategy" }
 utils          = { path = "utils" }
+execution      = { path = "execution" }
 [features]
 dev  = [ "conf/dev" ]
 live = [ "conf/live" ]

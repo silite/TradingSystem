@@ -4,10 +4,12 @@
 
 use std::{
     collections::HashMap,
+    os::unix::process::ExitStatusExt,
     sync::{Arc, Mutex},
 };
 
 use derive_builder::Builder;
+use execution::ExecutionExt;
 use market_feed::MarketFeed;
 use portfolio::{balance::BalanceHandler, position::PositionHandler};
 use protocol::{event::bus::CommandBus, market::Market};
@@ -20,7 +22,7 @@ pub struct Engine<Portfolio, Execution, Strategy>
 where
     Portfolio: BalanceHandler + PositionHandler,
     Strategy: StrategyExt,
-    Execution: Send,
+    Execution: ExecutionExt,
 {
     /// 全局唯一engine_id，索引全局唯一的portfolio，掌管一批traders。
     engine_id: uuid::Uuid,
@@ -40,7 +42,7 @@ impl<Portfolio, Execution, Strategy> Engine<Portfolio, Execution, Strategy>
 where
     Portfolio: BalanceHandler + PositionHandler + Send + 'static,
     Strategy: StrategyExt + Send + 'static,
-    Execution: Send + 'static,
+    Execution: ExecutionExt + Send + 'static,
 {
     /// engine托管多个trader，engine.run时执行每个trader的run
     pub fn run(self) -> anyhow::Result<()> {
