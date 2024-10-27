@@ -28,8 +28,9 @@ where
     command_bus: Arc<CommandBus>,
     /// 启动时全局静态配置/环境变量。
     config: conf::Config,
-    /// 全局投资组合，每个trader独占享有的资金，每个trader的资产更新时，会异步patch更新到全局。
-    /// 所以这里的数据更新可能并不及时。
+    /// 全局投资组合，每个trader独占享有的资金，每个trader的资产更新时，会异步patch更新到全局;
+    /// 所以这里的数据更新可能并不及时;
+    /// 因为portfolio可clone，所以透传给trader作为初始化值，但trader内部更新不需要锁。
     portfolio: HashMap<Market, Portfolio>,
     /// 每个traders享有独占的账户资产，trader 和 strategy 为1对1。
     traders: HashMap<Market, Trader<Portfolio, Execution, Strategy>>,

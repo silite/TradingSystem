@@ -80,7 +80,13 @@ where
                         }
                     }
                     TradeEvent::OrderNew(order_request) => {
-                        
+                        if let Some(price) = order_request.main_order.price {
+                            let amount = price * order_request.main_order.volume;
+                            if let Err(err) = self.portfolio.diff_freezed_balance(amount) {
+                                ftlog::error!("[Trade Event Error] OrderNew error. {}", err);
+                                continue;
+                            }
+                        }
                     }
                     TradeEvent::OrderUpdate => todo!(),
                 }

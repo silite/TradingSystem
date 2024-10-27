@@ -33,6 +33,7 @@ where
             macd_diff: 0.,
             rsi_diff: 0.,
             atr_scaling: 2.0,
+            per_hand: 200.,
         })
         .state(Default::default())
         .indicators(None)

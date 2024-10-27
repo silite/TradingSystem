@@ -2,11 +2,15 @@
 #![allow(unused_variables)]
 #![allow(unused_imports)]
 
+pub mod amount;
 pub mod balance;
+pub mod error;
 pub mod position;
 
-use balance::{Amount, BalanceHandler};
+use amount::Amount;
+use balance::BalanceHandler;
 use derive_builder::Builder;
+use error::PortfolioError;
 use position::PositionHandler;
 use protocol::{
     market::{symbol::Instrument, Market},
@@ -37,40 +41,86 @@ pub struct MetaPortfolio {
 }
 
 impl BalanceHandler for MetaPortfolio {
-    fn set_available_balance<A: Into<balance::Amount>>(&mut self, diff: A) -> anyhow::Result<()> {
+    fn set_available_balance<A: Into<Amount>>(
+        &mut self,
+        diff: A,
+    ) -> anyhow::Result<(), PortfolioError> {
+        self.open_balance = diff.into();
+        Ok(())
+    }
+
+    fn diff_available_balance<A: Into<Amount>>(
+        &mut self,
+        diff: A,
+    ) -> anyhow::Result<(), PortfolioError> {
+        let diff = diff.into();
+        if &self.open_balance < &diff {
+            return Err(PortfolioError::OpenBalanceInsufficient(
+                self.open_balance,
+                diff,
+            ));
+        }
+
+        self.open_balance += diff;
+
+        Ok(())
+    }
+
+    fn get_available_balance(&self) -> Amount {
+        self.open_balance
+    }
+
+    fn set_freezed_balance<A: Into<Amount>>(
+        &mut self,
+        diff: A,
+    ) -> anyhow::Result<(), PortfolioError> {
+        self.freezed_balance = diff.into();
+
+        Ok(())
+    }
+
+    fn diff_freezed_balance<A: Into<Amount>>(
+        &mut self,
+        diff: A,
+    ) -> anyhow::Result<(), PortfolioError> {
+        let diff = diff.into();
+        if &self.open_balance < &diff {
+            return Err(PortfolioError::OpenBalanceInsufficient(
+                self.open_balance,
+                diff,
+            ));
+        }
+
+        if &self.freezed_balance < &-diff {
+            return Err(PortfolioError::FreezedBalanceInsufficient(
+                self.open_balance,
+                diff,
+            ));
+        }
+
+        self.open_balance -= diff;
+        self.freezed_balance += diff;
+
+        Ok(())
+    }
+
+    fn get_freezed_balance(&self) -> Amount {
+        self.freezed_balance
+    }
+
+    fn set_exit_balance<A: Into<Amount>>(&mut self, diff: A) -> anyhow::Result<(), PortfolioError> {
         todo!()
     }
 
-    fn diff_available_balance<A: Into<balance::Amount>>(&mut self, diff: A) -> anyhow::Result<()> {
+    fn diff_exit_balance<A: Into<Amount>>(
+        &mut self,
+        diff: A,
+    ) -> anyhow::Result<(), PortfolioError> {
         todo!()
     }
 
-    fn get_available_balance(&self) -> balance::Amount {
-        todo!()
-    }
-
-    fn set_freezed_balance<A: Into<balance::Amount>>(&mut self, diff: A) -> anyhow::Result<()> {
-        todo!()
-    }
-
-    fn diff_freezed_balance<A: Into<balance::Amount>>(&mut self, diff: A) -> anyhow::Result<()> {
-        todo!()
-    }
-
-    fn get_freezed_balance(&self) -> balance::Amount {
-        todo!()
-    }
-
-    fn set_exit_balance<A: Into<balance::Amount>>(&mut self, diff: A) -> anyhow::Result<()> {
-        todo!()
-    }
-
-    fn diff_exit_balance<A: Into<balance::Amount>>(&mut self, diff: A) -> anyhow::Result<()> {
-        todo!()
-    }
-
-    fn get_exit_balance(&self) -> balance::Amount {
-        todo!()
+    fn get_exit_balance(&self) -> Amount {
+        self.exited_balance
     }
 }
 

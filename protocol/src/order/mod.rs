@@ -13,7 +13,7 @@ pub struct OrderRequest {
 pub struct Order {
     pub side: Side,
     pub order_type: OrderType,
-    pub quantity: i32,
+    pub volume: f64,
     pub price: Option<f64>,
     // pub time_in_force: TimeInForce,
 }

@@ -22,6 +22,8 @@ pub struct MacdStrategyConfig {
     pub macd_diff: f64,
     pub rsi_diff: f64,
     pub atr_scaling: f64,
+    /// 一手多少钱
+    pub per_hand: f64,
 }
 
 #[derive(Debug, Default, Clone)]
@@ -139,11 +141,12 @@ impl StrategyExt for MacdStrategy {
             )
         };
 
+        let volume = self.config.per_hand / price;
         Ok(OrderRequest {
             main_order: OrderBuilder::default()
                 .side(side)
                 .order_type(OrderType::Limit)
-                .quantity(100)
+                .volume(volume)
                 // TODO
                 .price(Some(price))
                 .build()?,
@@ -151,7 +154,7 @@ impl StrategyExt for MacdStrategy {
                 OrderBuilder::default()
                     .side(!side)
                     .order_type(OrderType::Limit)
-                    .quantity(100)
+                    .volume(volume)
                     .price(Some(atr.0))
                     .build()?,
             ),
@@ -159,7 +162,7 @@ impl StrategyExt for MacdStrategy {
                 OrderBuilder::default()
                     .side(side)
                     .order_type(OrderType::Market)
-                    .quantity(100)
+                    .volume(volume)
                     .price(Some(atr.1))
                     .build()?,
             ),
