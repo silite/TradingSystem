@@ -3,4 +3,7 @@ name    = "execution"
 version = "0.1.0"
 edition = "2021"
 [dependencies]
-anyhow = { workspace = true }
+crossbeam = { workspace = true }
+thiserror = { workspace = true }
+anyhow    = { workspace = true }
+protocol  = { path = "../protocol" }

@@ -1,8 +1,7 @@
 use core::error;
 
+use protocol::portfolio::amount::Amount;
 use thiserror::Error;
-
-use crate::amount::Amount;
 
 #[derive(Error, Debug)]
 pub enum PortfolioError {

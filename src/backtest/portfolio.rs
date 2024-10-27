@@ -1,5 +1,5 @@
-use portfolio::{amount::Amount, MetaPortfolio, MetaPortfolioBuilder};
-use protocol::market::Market;
+use portfolio::{MetaPortfolio, MetaPortfolioBuilder};
+use protocol::{market::Market, portfolio::amount::Amount};
 use uuid::Uuid;
 
 pub fn init_portfolio(engine_id: Uuid, market: Market) -> MetaPortfolio {

@@ -1,22 +1,35 @@
-use crate::ExecutionExt;
+use protocol::{
+    order::{OrderRequest, OrderResponse},
+    portfolio::{amount::Amount, volume::Volume},
+};
+
+use crate::{error::ExecutionError, ExecutionExt};
 
 #[derive(Clone)]
 pub struct Matching;
 
 impl ExecutionExt for Matching {
-    fn new_order(&self) -> anyhow::Result<()> {
+    async fn new_order(
+        &self,
+        order: OrderRequest,
+        order_cb_tx: crossbeam::channel::Sender<anyhow::Result<OrderResponse>>,
+    ) -> anyhow::Result<(), ExecutionError> {
+        let msg = OrderResponse::OrderSuccess((
+            Amount(order.main_order.price.unwrap()),
+            Volume(order.main_order.volume),
+        ));
+        Ok(order_cb_tx.send(Ok(msg))?)
+    }
+
+    async fn cancel_order(&self) -> anyhow::Result<(), ExecutionError> {
         todo!()
     }
 
-    fn cancel_order(&self) -> anyhow::Result<()> {
+    async fn query_all_order(&self) -> anyhow::Result<(), ExecutionError> {
         todo!()
     }
 
-    fn query_all_order(&self) -> anyhow::Result<()> {
-        todo!()
-    }
-
-    fn query_all_trade(&self) -> anyhow::Result<()> {
+    async fn query_all_trade(&self) -> anyhow::Result<(), ExecutionError> {
         todo!()
     }
 }

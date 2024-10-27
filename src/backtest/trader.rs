@@ -52,7 +52,7 @@ where
             market_feed_command_topic,
         ))
         .command_queue(Default::default())
-        .execution(Matching)
+        .execution(Arc::new(Matching))
         .strategy(macd_strategy)
         .build()
         .expect("init trader error.")

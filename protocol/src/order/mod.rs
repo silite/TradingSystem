@@ -1,6 +1,10 @@
 use derive_builder::Builder;
 
-use crate::{market::symbol::Instrument, trade::Side};
+use crate::{
+    market::symbol::Instrument,
+    portfolio::{amount::Amount, volume::Volume},
+    trade::Side,
+};
 
 #[derive(Debug, Clone)]
 pub struct OrderRequest {
@@ -36,4 +40,10 @@ pub enum OrderType {
     TrailingStop {
         callback_rate: f64, // 回调比例
     },
+}
+
+#[derive(Debug, Clone)]
+pub enum OrderResponse {
+    OrderSuccess((Amount, Volume)),
+    OrderError((Amount, Volume)),
 }

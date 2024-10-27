@@ -2,19 +2,17 @@
 #![allow(unused_variables)]
 #![allow(unused_imports)]
 
-pub mod amount;
 pub mod balance;
 pub mod error;
 pub mod position;
 
-use amount::Amount;
 use balance::BalanceHandler;
 use derive_builder::Builder;
 use error::PortfolioError;
 use position::PositionHandler;
 use protocol::{
     market::{symbol::Instrument, Market},
-    portfolio::position::MetaPosition,
+    portfolio::{amount::Amount, position::MetaPosition},
 };
 use uuid::Uuid;
 
@@ -54,7 +52,7 @@ impl BalanceHandler for MetaPortfolio {
         diff: A,
     ) -> anyhow::Result<(), PortfolioError> {
         let diff = diff.into();
-        if &self.open_balance < &diff {
+        if &self.open_balance < &-diff {
             return Err(PortfolioError::OpenBalanceInsufficient(
                 self.open_balance,
                 diff,
@@ -84,13 +82,6 @@ impl BalanceHandler for MetaPortfolio {
         diff: A,
     ) -> anyhow::Result<(), PortfolioError> {
         let diff = diff.into();
-        if &self.open_balance < &diff {
-            return Err(PortfolioError::OpenBalanceInsufficient(
-                self.open_balance,
-                diff,
-            ));
-        }
-
         if &self.freezed_balance < &-diff {
             return Err(PortfolioError::FreezedBalanceInsufficient(
                 self.open_balance,
@@ -98,7 +89,6 @@ impl BalanceHandler for MetaPortfolio {
             ));
         }
 
-        self.open_balance -= diff;
         self.freezed_balance += diff;
 
         Ok(())
@@ -121,6 +111,24 @@ impl BalanceHandler for MetaPortfolio {
 
     fn get_exit_balance(&self) -> Amount {
         self.exited_balance
+    }
+
+    fn diff_open_freezed_balance<A: Into<Amount>>(
+        &mut self,
+        diff: A,
+    ) -> anyhow::Result<(), PortfolioError> {
+        let diff = diff.into();
+        if &self.open_balance < &diff {
+            return Err(PortfolioError::OpenBalanceInsufficient(
+                self.open_balance,
+                diff,
+            ));
+        }
+
+        self.open_balance -= diff;
+        self.freezed_balance += diff;
+
+        Ok(())
     }
 }
 

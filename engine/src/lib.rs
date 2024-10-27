@@ -42,7 +42,7 @@ impl<Portfolio, Execution, Strategy> Engine<Portfolio, Execution, Strategy>
 where
     Portfolio: BalanceHandler + PositionHandler + Send + 'static,
     Strategy: StrategyExt + Send + 'static,
-    Execution: ExecutionExt + Send + 'static,
+    Execution: ExecutionExt + Send + Sync + 'static,
 {
     /// engine托管多个trader，engine.run时执行每个trader的run
     pub fn run(self) -> anyhow::Result<()> {

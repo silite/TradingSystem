@@ -1,6 +1,8 @@
 use std::ops::{Add, Sub};
 
-use crate::{amount::Amount, error::PortfolioError};
+use protocol::portfolio::amount::Amount;
+
+use crate::error::PortfolioError;
 
 pub trait BalanceHandler {
     /// 设置资金信息。
@@ -26,6 +28,12 @@ pub trait BalanceHandler {
 
     /// diff当前冻结资金，-为流出，+为流入。
     fn diff_freezed_balance<A: Into<Amount>>(
+        &mut self,
+        diff: A,
+    ) -> anyhow::Result<(), PortfolioError>;
+
+    /// diff是open 到 freezed的方向，正向为+，-为反向
+    fn diff_open_freezed_balance<A: Into<Amount>>(
         &mut self,
         diff: A,
     ) -> anyhow::Result<(), PortfolioError>;
