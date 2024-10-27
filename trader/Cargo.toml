@@ -16,3 +16,4 @@ market_feed     = { path = "../market_feed" }
 portfolio       = { path = "../portfolio" }
 strategy        = { path = "../strategy" }
 execution       = { path = "../execution" }
+utils           = { path = "../utils" }

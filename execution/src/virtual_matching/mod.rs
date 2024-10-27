@@ -14,6 +14,7 @@ impl ExecutionExt for Matching {
         order: OrderRequest,
         order_cb_tx: crossbeam::channel::Sender<anyhow::Result<OrderResponse>>,
     ) -> anyhow::Result<(), ExecutionError> {
+        ftlog::info!("[Execution] Order Success. {:?}", order);
         let msg = OrderResponse::OrderSuccess((
             Amount(order.main_order.price.unwrap()),
             Volume(order.main_order.volume),

@@ -16,6 +16,7 @@ use protocol::{
     portfolio::market_data::binance::Kline,
 };
 use tokio::sync::{mpsc, oneshot};
+use utils::runtime::TOKIO_RUNTIME;
 
 use crate::{
     indictor::{ComputedIndicators, Indicator},
@@ -44,7 +45,7 @@ impl MarketFeed for BinanceMarketFeed {
             command_topic,
             data_tx,
         };
-        tokio::spawn(async move {
+        TOKIO_RUNTIME.spawn(async move {
             inst.run()
                 .await
                 .map_err(|err| ftlog::error!("[market feed] run error. {:?}", err))
@@ -90,7 +91,7 @@ impl MarketFeed for BinanceMarketFeed {
         // 等待spawn成功
         let (start_tx, start_rx) = oneshot::channel();
 
-        let select_join = tokio::spawn(async {
+        let select_join = TOKIO_RUNTIME.spawn(async {
             let _ = start_tx.send(());
             db::market_data::select_all(tx, "btcusdt_kline").await
         });

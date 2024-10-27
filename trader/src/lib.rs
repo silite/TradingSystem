@@ -23,6 +23,7 @@ use protocol::{
     order::OrderResponse,
 };
 use strategy::StrategyExt;
+use utils::runtime::TOKIO_RUNTIME;
 use yata::core::OHLCV;
 
 #[derive(Builder, Clone)]
@@ -60,8 +61,10 @@ where
     /// trader.run时，策略也要run，监听事件。market_feed.run晚于strategy.run。
     pub async fn run(self) -> anyhow::Result<()> {
         ftlog::info!("[trade] {} {:?} run.", self.engine_id, self.market);
-        std::thread::spawn(move || self.event_loop());
-        Ok(())
+        Ok(std::thread::spawn(move || self.event_loop())
+            .join()
+            // 必须执行成功
+            .unwrap()?)
     }
 
     /// 事件循环
@@ -75,28 +78,23 @@ where
                 }
                 Err(err) => {
                     ftlog::error!("[Trader Event Error] recv market data error. {}", err);
-                    continue;
                 }
             }
 
             // FIXME 将order_resp移到单独线程
-            match order_channel_rx.recv() {
+            match order_channel_rx.try_recv() {
                 Ok(Ok(order_resp)) => {
                     self.command_queue
                         .0
                         .push(TradeEvent::OrderUpdate(order_resp));
-                }
-                Err(err) => {
-                    ftlog::error!("[Trader Event Error] recv order response error. {}", err);
-                    continue;
                 }
                 Ok(Err(err)) => {
                     ftlog::error!(
                         "[Trader Event Error] new order error. this is execution bug. {}",
                         err
                     );
-                    continue;
                 }
+                _ => {}
             }
 
             // FIXME 将event_loop移到单独线程
@@ -122,7 +120,7 @@ where
                         // 下单
                         let execution = self.execution.clone();
                         let order_channel_tx = order_channel_tx.clone();
-                        tokio::spawn(async move {
+                        TOKIO_RUNTIME.spawn(async move {
                             if let Err(err) =
                                 execution.new_order(order_request, order_channel_tx).await
                             {
@@ -135,6 +133,7 @@ where
                             if let Err(err) = self.portfolio.diff_freezed_balance(-amount) {
                                 ftlog::error!("[Trade Event Error] OrderNew error. {}", err);
                                 continue;
+                            } else {
                             }
                         }
                         OrderResponse::OrderError((amount, volume)) => {

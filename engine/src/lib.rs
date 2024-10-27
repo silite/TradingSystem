@@ -16,6 +16,7 @@ use protocol::{event::bus::CommandBus, market::Market};
 use rayon::prelude::*;
 use strategy::StrategyExt;
 use trader::Trader;
+use utils::runtime::TOKIO_RUNTIME;
 
 #[derive(Builder)]
 pub struct Engine<Portfolio, Execution, Strategy>
@@ -48,7 +49,7 @@ where
     pub fn run(self) -> anyhow::Result<()> {
         ftlog::info!("[engine] {} run.", self.engine_id);
         self.traders.into_iter().for_each(|(market, trade)| {
-            tokio::spawn(async move {
+            TOKIO_RUNTIME.spawn(async move {
                 let _ = trade
                     .run()
                     .await

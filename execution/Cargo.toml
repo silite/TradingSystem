@@ -6,4 +6,5 @@ edition = "2021"
 crossbeam = { workspace = true }
 thiserror = { workspace = true }
 anyhow    = { workspace = true }
+ftlog     = { workspace = true }
 protocol  = { path = "../protocol" }
