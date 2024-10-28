@@ -13,3 +13,4 @@ anyhow         = { workspace = true }
 dashmap        = { workspace = true }
 ftlog          = { workspace = true }
 derive_builder = { workspace = true }
+rust_decimal   = { workspace = true }

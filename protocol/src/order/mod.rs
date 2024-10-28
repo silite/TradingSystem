@@ -1,4 +1,5 @@
 use derive_builder::Builder;
+use rust_decimal::Decimal;
 
 use crate::{
     market::symbol::Instrument,
@@ -17,8 +18,8 @@ pub struct OrderRequest {
 pub struct Order {
     pub side: Side,
     pub order_type: OrderType,
-    pub volume: f64,
-    pub price: Option<f64>,
+    pub volume: Decimal,
+    pub price: Option<Decimal>,
     // pub time_in_force: TimeInForce,
 }
 
@@ -32,8 +33,8 @@ pub enum OrderType {
 
     // 止损限价单 - 当价格达到触发价时，以指定限价卖出/买入
     StopLimit {
-        stop_price: f64,
-        limit_price: f64,
+        stop_price: Decimal,
+        limit_price: Decimal,
     },
 
     // 追踪止损单 - 价格每上涨，止损价相应上调

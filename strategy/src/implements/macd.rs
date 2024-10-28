@@ -8,6 +8,8 @@ use protocol::{
     portfolio::market_data::binance::Kline,
     trade::Side,
 };
+use rust_decimal::{prelude::FromPrimitive, Decimal};
+use rust_decimal_macros::dec;
 use yata::core::OHLCV;
 
 use crate::{
@@ -137,17 +139,17 @@ impl StrategyExt for MacdStrategy {
         );
         let (price, atr) = if matches!(side, Side::Buy) {
             (
-                market_data.high,
+                Decimal::from_f64(market_data.high).unwrap(),
                 (indicators.atr.0 * config.atr_scaling, indicators.atr.1),
             )
         } else {
             (
-                market_data.low,
+                Decimal::from_f64(market_data.low).unwrap(),
                 (indicators.atr.1 * config.atr_scaling, indicators.atr.0),
             )
         };
 
-        let volume = self.config.per_hand / price;
+        let volume = Decimal::from_f64(self.config.per_hand).unwrap() / price;
         Ok(OrderRequest {
             main_order: OrderBuilder::default()
                 .side(side)
@@ -161,7 +163,7 @@ impl StrategyExt for MacdStrategy {
                     .side(!side)
                     .order_type(OrderType::Limit)
                     .volume(volume)
-                    .price(Some(atr.0))
+                    .price(Some(Decimal::from_f64(atr.0).unwrap()))
                     .build()?,
             ),
             stop_loss: Some(
@@ -169,7 +171,7 @@ impl StrategyExt for MacdStrategy {
                     .side(side)
                     .order_type(OrderType::Market)
                     .volume(volume)
-                    .price(Some(atr.1))
+                    .price(Some(Decimal::from_f64(atr.1).unwrap()))
                     .build()?,
             ),
         })

@@ -3,9 +3,11 @@ name    = "portfolio"
 version = "0.1.0"
 edition = "2021"
 [dependencies]
-uuid           = { workspace = true }
-anyhow         = { workspace = true }
-derive_builder = { workspace = true }
-thiserror      = { workspace = true }
-ftlog          = { workspace = true }
-protocol       = { path = "../protocol" }
+uuid                = { workspace = true }
+anyhow              = { workspace = true }
+derive_builder      = { workspace = true }
+thiserror           = { workspace = true }
+ftlog               = { workspace = true }
+rust_decimal        = { workspace = true }
+rust_decimal_macros = { workspace = true }
+protocol            = { path = "../protocol" }

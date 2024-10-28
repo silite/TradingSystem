@@ -3,8 +3,10 @@ use std::{
     ops::{Add, AddAssign, Neg, Sub, SubAssign},
 };
 
+use rust_decimal::Decimal;
+
 #[derive(Clone, Default, Debug, Copy)]
-pub struct Amount(pub f64);
+pub struct Amount(pub Decimal);
 
 impl Add for Amount {
     type Output = Self;
@@ -53,8 +55,8 @@ impl Neg for Amount {
     }
 }
 
-impl From<f64> for Amount {
-    fn from(value: f64) -> Self {
+impl From<Decimal> for Amount {
+    fn from(value: Decimal) -> Self {
         Self(value)
     }
 }

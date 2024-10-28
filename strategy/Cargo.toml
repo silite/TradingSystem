@@ -3,10 +3,12 @@ name    = "strategy"
 version = "0.1.0"
 edition = "2021"
 [dependencies]
-anyhow         = { workspace = true }
-thiserror      = { workspace = true }
-derive_builder = { workspace = true }
-crossbeam      = { workspace = true }
-ftlog          = { workspace = true }
-yata           = { workspace = true }
-protocol       = { path = "../protocol" }
+anyhow              = { workspace = true }
+thiserror           = { workspace = true }
+derive_builder      = { workspace = true }
+crossbeam           = { workspace = true }
+ftlog               = { workspace = true }
+yata                = { workspace = true }
+rust_decimal        = { workspace = true }
+rust_decimal_macros = { workspace = true }
+protocol            = { path = "../protocol" }

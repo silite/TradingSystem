@@ -14,6 +14,7 @@ use protocol::{
     market::{symbol::Instrument, Market},
     portfolio::{amount::Amount, position::MetaPosition},
 };
+use rust_decimal_macros::dec;
 use uuid::Uuid;
 
 #[derive(Builder, Clone)]
@@ -52,7 +53,7 @@ impl BalanceHandler for MetaPortfolio {
         diff: A,
     ) -> anyhow::Result<(), PortfolioError> {
         let diff = diff.into();
-        if diff < (0.).into() && &self.open_balance < &-diff {
+        if diff < dec!(0.).into() && &self.open_balance < &-diff {
             return Err(PortfolioError::OpenBalanceInsufficient(
                 self.open_balance,
                 -diff,
@@ -73,12 +74,12 @@ impl BalanceHandler for MetaPortfolio {
         diff: A,
     ) -> anyhow::Result<(), PortfolioError> {
         let diff = diff.into();
-        if diff < (0.).into() && &self.freezed_balance < &-diff {
+        if diff < dec!(0.).into() && &self.freezed_balance < &-diff {
             return Err(PortfolioError::FreezedBalanceInsufficient(
                 self.freezed_balance,
                 -diff,
             ));
-        } else if diff > (0.).into() && &self.open_balance < &diff {
+        } else if diff > dec!(0.).into() && &self.open_balance < &diff {
             return Err(PortfolioError::OpenBalanceInsufficient(
                 self.open_balance,
                 diff,
@@ -106,7 +107,7 @@ impl BalanceHandler for MetaPortfolio {
     ) -> anyhow::Result<(), PortfolioError> {
         let diff = diff.into();
         ftlog::info!("[diff_freezed_balance] {} {}", self.freezed_balance, diff);
-        if diff < (0.).into() && &self.freezed_balance < &-diff {
+        if diff < dec!(0.).into() && &self.freezed_balance < &-diff {
             return Err(PortfolioError::FreezedBalanceInsufficient(
                 self.freezed_balance,
                 -diff,
