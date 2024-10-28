@@ -14,6 +14,8 @@ use strategy::{
 use trader::Trader;
 use uuid::Uuid;
 
+use super::MARKET_FEED_COMMAND_TOPIC;
+
 pub async fn init_binance_trader<Portfolio>(
     engine_id: Uuid,
     market: Market,
@@ -23,13 +25,10 @@ pub async fn init_binance_trader<Portfolio>(
 where
     Portfolio: BalanceHandler + PositionHandler + Clone,
 {
-    let indicator_market_feed_topic = "indicator_strategy";
-    let market_feed_command_topic = "binance_market_feed";
     let execution = VirtualMatching::new();
     let order_resp_rx = execution.get_order_resp_rx();
 
     let macd_strategy = MacdStrategyBuilder::default()
-        .market_feed_topic(indicator_market_feed_topic)
         .config(MacdStrategyConfig {
             open_interval: 1000,
             adx_threshold: 0.1,
@@ -51,7 +50,7 @@ where
         .portfolio(portfolio)
         .market_feed_rx(BinanceMarketFeed::new(
             command_bus.clone(),
-            market_feed_command_topic,
+            MARKET_FEED_COMMAND_TOPIC,
         ))
         .command_queue(Default::default())
         .execution(Arc::new(execution))

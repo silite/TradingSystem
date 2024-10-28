@@ -37,7 +37,6 @@ pub struct MacdStrategyState {
 
 #[derive(Builder, Clone)]
 pub struct MacdStrategy {
-    market_feed_topic: &'static str,
     indicators: Option<Indicators>,
     market_data: Option<Kline>,
     config: MacdStrategyConfig,

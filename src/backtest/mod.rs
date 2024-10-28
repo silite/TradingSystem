@@ -6,6 +6,7 @@ use utils::logs;
 mod engine;
 mod portfolio;
 mod trader;
+pub const MARKET_FEED_COMMAND_TOPIC: &'static str = "binance_market_feed";
 
 pub async fn start() -> anyhow::Result<()> {
     //
@@ -17,7 +18,7 @@ pub async fn start() -> anyhow::Result<()> {
     std::thread::sleep(Duration::from_secs(5));
     command_bus
         .publish(
-            "binance_market_feed",
+            MARKET_FEED_COMMAND_TOPIC,
             protocol::event::Command::MarketFeed(MarketFeedCommand::LoadHistory),
         )
         .unwrap();
