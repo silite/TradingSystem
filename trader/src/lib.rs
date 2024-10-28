@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 #![allow(unused_imports)]
+#![feature(let_chains)]
 
 mod machine;
 
@@ -21,6 +22,7 @@ use protocol::{
     indictor::Indicators,
     market::Market,
     order::OrderResponse,
+    trade::Side,
 };
 use strategy::StrategyExt;
 use utils::runtime::TOKIO_RUNTIME;
@@ -108,8 +110,10 @@ where
                         }
                     }
                     TradeEvent::OrderNew(order_request) => {
-                        // 锁资
-                        if let Some(price) = order_request.main_order.price {
+                        // 买入的时候才锁资
+                        if let Some(price) = order_request.main_order.price
+                            && matches!(order_request.main_order.side, Side::Buy)
+                        {
                             let amount = price * order_request.main_order.volume;
                             if let Err(err) = self.portfolio.diff_open_freezed_balance(amount) {
                                 ftlog::error!("[Trade Event Error] OrderNew error. {}", err);
@@ -129,17 +133,36 @@ where
                         });
                     }
                     TradeEvent::OrderUpdate(order_resp) => match order_resp {
-                        OrderResponse::OrderSuccess((amount, volume)) => {
-                            if let Err(err) = self.portfolio.diff_freezed_balance(-amount) {
-                                ftlog::error!("[Trade Event Error] OrderNew error. {}", err);
-                                continue;
-                            } else {
+                        OrderResponse::OrderSuccess(order) => {
+                            if let Some(price) = order.price {
+                                let amount = price * order.volume;
+                                // 买入成功去掉冻结资金
+                                if matches!(order.side, Side::Buy) {
+                                    if let Err(err) = self.portfolio.diff_freezed_balance(-amount) {
+                                        ftlog::error!(
+                                            "[Trade Event Error] OrderNew error. {}",
+                                            err
+                                        );
+                                        continue;
+                                    }
+                                // 卖出成功要加上可用资金
+                                } else {
+                                    // unwrap一定成功
+                                    self.portfolio.diff_available_balance(amount).unwrap();
+                                }
                             }
                         }
-                        OrderResponse::OrderError((amount, volume)) => {
-                            if let Err(err) = self.portfolio.diff_open_freezed_balance(-amount) {
-                                ftlog::error!("[Trade Event Error] OrderNew error. {}", err);
-                                continue;
+                        OrderResponse::OrderError(order) => {
+                            // 买入失败回滚资金，卖出不动
+                            if let Some(price) = order.price
+                                && matches!(order.side, Side::Buy)
+                            {
+                                let amount = price * order.volume;
+                                if let Err(err) = self.portfolio.diff_open_freezed_balance(-amount)
+                                {
+                                    ftlog::error!("[Trade Event Error] OrderNew error. {}", err);
+                                    continue;
+                                }
                             }
                         }
                     },

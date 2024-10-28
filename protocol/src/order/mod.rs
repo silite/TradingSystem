@@ -44,6 +44,6 @@ pub enum OrderType {
 
 #[derive(Debug, Clone)]
 pub enum OrderResponse {
-    OrderSuccess((Amount, Volume)),
-    OrderError((Amount, Volume)),
+    OrderSuccess(Order),
+    OrderError(Order),
 }

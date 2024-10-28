@@ -7,4 +7,5 @@ uuid           = { workspace = true }
 anyhow         = { workspace = true }
 derive_builder = { workspace = true }
 thiserror      = { workspace = true }
+ftlog          = { workspace = true }
 protocol       = { path = "../protocol" }

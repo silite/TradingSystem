@@ -52,10 +52,10 @@ impl BalanceHandler for MetaPortfolio {
         diff: A,
     ) -> anyhow::Result<(), PortfolioError> {
         let diff = diff.into();
-        if &self.open_balance < &-diff {
+        if diff < (0.).into() && &self.open_balance < &-diff {
             return Err(PortfolioError::OpenBalanceInsufficient(
                 self.open_balance,
-                diff,
+                -diff,
             ));
         }
 
@@ -66,6 +66,29 @@ impl BalanceHandler for MetaPortfolio {
 
     fn get_available_balance(&self) -> Amount {
         self.open_balance
+    }
+
+    fn diff_open_freezed_balance<A: Into<Amount>>(
+        &mut self,
+        diff: A,
+    ) -> anyhow::Result<(), PortfolioError> {
+        let diff = diff.into();
+        if diff < (0.).into() && &self.freezed_balance < &-diff {
+            return Err(PortfolioError::FreezedBalanceInsufficient(
+                self.freezed_balance,
+                -diff,
+            ));
+        } else if diff > (0.).into() && &self.open_balance < &diff {
+            return Err(PortfolioError::OpenBalanceInsufficient(
+                self.open_balance,
+                diff,
+            ));
+        }
+
+        self.open_balance -= diff;
+        self.freezed_balance += diff;
+
+        Ok(())
     }
 
     fn set_freezed_balance<A: Into<Amount>>(
@@ -82,10 +105,11 @@ impl BalanceHandler for MetaPortfolio {
         diff: A,
     ) -> anyhow::Result<(), PortfolioError> {
         let diff = diff.into();
-        if &self.freezed_balance < &-diff {
+        ftlog::info!("[diff_freezed_balance] {} {}", self.freezed_balance, diff);
+        if diff < (0.).into() && &self.freezed_balance < &-diff {
             return Err(PortfolioError::FreezedBalanceInsufficient(
-                self.open_balance,
-                diff,
+                self.freezed_balance,
+                -diff,
             ));
         }
 
@@ -111,24 +135,6 @@ impl BalanceHandler for MetaPortfolio {
 
     fn get_exit_balance(&self) -> Amount {
         self.exited_balance
-    }
-
-    fn diff_open_freezed_balance<A: Into<Amount>>(
-        &mut self,
-        diff: A,
-    ) -> anyhow::Result<(), PortfolioError> {
-        let diff = diff.into();
-        if &self.open_balance < &diff {
-            return Err(PortfolioError::OpenBalanceInsufficient(
-                self.open_balance,
-                diff,
-            ));
-        }
-
-        self.open_balance -= diff;
-        self.freezed_balance += diff;
-
-        Ok(())
     }
 }
 

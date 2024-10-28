@@ -1,7 +1,4 @@
-use protocol::{
-    order::{OrderRequest, OrderResponse},
-    portfolio::{amount::Amount, volume::Volume},
-};
+use protocol::order::{OrderRequest, OrderResponse};
 
 use crate::{error::ExecutionError, ExecutionExt};
 
@@ -15,10 +12,7 @@ impl ExecutionExt for Matching {
         order_cb_tx: crossbeam::channel::Sender<anyhow::Result<OrderResponse>>,
     ) -> anyhow::Result<(), ExecutionError> {
         ftlog::info!("[Execution] Order Success. {:?}", order);
-        let msg = OrderResponse::OrderSuccess((
-            Amount(order.main_order.price.unwrap()),
-            Volume(order.main_order.volume),
-        ));
+        let msg = OrderResponse::OrderSuccess(order.main_order);
         Ok(order_cb_tx.send(Ok(msg))?)
     }
 

@@ -1,5 +1,5 @@
 use std::{
-    fmt::Display,
+    fmt::{write, Display},
     ops::{Add, AddAssign, Neg, Sub, SubAssign},
 };
 
