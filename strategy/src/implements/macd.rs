@@ -131,12 +131,6 @@ impl StrategyExt for MacdStrategy {
         indicators: &Indicators,
         config: &Self::Config,
     ) -> anyhow::Result<OrderRequest> {
-        ftlog::info!(
-            "[atr] {} {:?} {:?}",
-            market_data.high,
-            indicators.atr,
-            config
-        );
         let (price, atr) = if matches!(side, Side::Buy) {
             (
                 Decimal::from_f64(market_data.high).unwrap(),
