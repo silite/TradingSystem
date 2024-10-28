@@ -3,17 +3,27 @@ use protocol::order::{OrderRequest, OrderResponse};
 use crate::{error::ExecutionError, ExecutionExt};
 
 #[derive(Clone)]
-pub struct Matching;
+pub struct VirtualMatching {
+    order_resp_tx: crossbeam::channel::Sender<OrderResponse>,
+    order_resp_rx: crossbeam::channel::Receiver<OrderResponse>,
+}
 
-impl ExecutionExt for Matching {
-    async fn new_order(
-        &self,
-        order: OrderRequest,
-        order_cb_tx: crossbeam::channel::Sender<anyhow::Result<OrderResponse>>,
-    ) -> anyhow::Result<(), ExecutionError> {
-        ftlog::info!("[Execution] Order Success. {:?}", order);
+impl ExecutionExt for VirtualMatching {
+    fn new() -> Self {
+        let (order_resp_tx, order_resp_rx) = crossbeam::channel::unbounded();
+        Self {
+            order_resp_tx,
+            order_resp_rx,
+        }
+    }
+
+    fn get_order_resp_rx(&self) -> crossbeam::channel::Receiver<OrderResponse> {
+        self.order_resp_rx.clone()
+    }
+
+    async fn new_order(&self, order: OrderRequest) -> anyhow::Result<(), ExecutionError> {
         let msg = OrderResponse::OrderSuccess(order.main_order);
-        Ok(order_cb_tx.send(Ok(msg))?)
+        Ok(self.order_resp_tx.send(msg)?)
     }
 
     async fn cancel_order(&self) -> anyhow::Result<(), ExecutionError> {

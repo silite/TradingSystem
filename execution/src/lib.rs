@@ -5,10 +5,13 @@ pub mod error;
 pub mod virtual_matching;
 
 pub trait ExecutionExt {
+    fn new() -> Self;
+
+    fn get_order_resp_rx(&self) -> crossbeam::channel::Receiver<OrderResponse>;
+
     fn new_order(
         &self,
         order: OrderRequest,
-        order_cb_tx: crossbeam::channel::Sender<anyhow::Result<OrderResponse>>,
     ) -> impl std::future::Future<Output = anyhow::Result<(), ExecutionError>> + Send;
 
     fn cancel_order(

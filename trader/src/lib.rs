@@ -48,6 +48,8 @@ where
         crossbeam::channel::Receiver<(<Strategy as StrategyExt>::MarketData, Indicators)>,
     /// 执行器
     execution: Arc<Execution>,
+    /// 委托回报通道
+    order_resp_rx: crossbeam::channel::Receiver<OrderResponse>,
     /// 策略
     strategy: Strategy,
     /// 事件循环队列
@@ -71,7 +73,6 @@ where
 
     /// 事件循环
     pub fn event_loop(mut self) -> anyhow::Result<()> {
-        let (order_channel_tx, order_channel_rx) = crossbeam::channel::unbounded();
         loop {
             // FIXME 将market_feed移到单独线程
             match self.market_feed_rx.recv() {
@@ -84,17 +85,11 @@ where
             }
 
             // FIXME 将order_resp移到单独线程
-            match order_channel_rx.try_recv() {
-                Ok(Ok(order_resp)) => {
+            match self.order_resp_rx.try_recv() {
+                Ok(order_resp) => {
                     self.command_queue
                         .0
                         .push(TradeEvent::OrderUpdate(order_resp));
-                }
-                Ok(Err(err)) => {
-                    ftlog::error!(
-                        "[Trader Event Error] new order error. this is execution bug. {}",
-                        err
-                    );
                 }
                 _ => {}
             }
@@ -123,11 +118,8 @@ where
 
                         // 下单
                         let execution = self.execution.clone();
-                        let order_channel_tx = order_channel_tx.clone();
                         TOKIO_RUNTIME.spawn(async move {
-                            if let Err(err) =
-                                execution.new_order(order_request, order_channel_tx).await
-                            {
+                            if let Err(err) = execution.new_order(order_request).await {
                                 ftlog::error!("[Trade Event Error] OrderNew error. {}", err);
                             }
                         });

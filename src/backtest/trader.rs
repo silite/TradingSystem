@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use execution::virtual_matching::Matching;
+use execution::{virtual_matching::VirtualMatching, ExecutionExt};
 use market_feed::{data::binance::BinanceMarketFeed, MarketFeed};
 use portfolio::{balance::BalanceHandler, position::PositionHandler};
 use protocol::{
@@ -19,12 +19,14 @@ pub async fn init_binance_trader<Portfolio>(
     market: Market,
     portfolio: Portfolio,
     command_bus: Arc<CommandBus>,
-) -> Trader<Portfolio, Matching, MacdStrategy>
+) -> Trader<Portfolio, VirtualMatching, MacdStrategy>
 where
     Portfolio: BalanceHandler + PositionHandler + Clone,
 {
     let indicator_market_feed_topic = "indicator_strategy";
     let market_feed_command_topic = "binance_market_feed";
+    let execution = VirtualMatching::new();
+    let order_resp_rx = execution.get_order_resp_rx();
 
     let macd_strategy = MacdStrategyBuilder::default()
         .market_feed_topic(indicator_market_feed_topic)
@@ -52,7 +54,8 @@ where
             market_feed_command_topic,
         ))
         .command_queue(Default::default())
-        .execution(Arc::new(Matching))
+        .execution(Arc::new(execution))
+        .order_resp_rx(order_resp_rx)
         .strategy(macd_strategy)
         .build()
         .expect("init trader error.")
