@@ -14,29 +14,32 @@ use protocol::{
     market::{symbol::Instrument, Market},
     portfolio::{amount::Amount, position::MetaPosition},
 };
+use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use uuid::Uuid;
 
 #[derive(Builder, Clone)]
 pub struct MetaPortfolio {
-    ///
+    /// 上层EngineID
     engine_id: Uuid,
-    ///
+    /// 市场标的，一个Trader对应一个Portfolio
     market: Market,
-    ///
+    /// 可用资金
     open_balance: Amount,
-    ///
+    /// 冻结资金
     freezed_balance: Amount,
-    ///
+    /// 退出交易资金
     exited_balance: Amount,
-    ///
+    /// 可用仓位
     open_position: Vec<MetaPosition>,
-    ///
+    /// 冻结仓位
     freezed_position: Vec<MetaPosition>,
-    ///
+    /// 退出交易仓位
     exited_position: Vec<MetaPosition>,
-    ///
-    update_ms: u64,
+    /// 手续费率
+    commission_rate: Decimal,
+    // 最后更新时间，暂时无用
+    // update_ms: u64,
 }
 
 impl BalanceHandler for MetaPortfolio {

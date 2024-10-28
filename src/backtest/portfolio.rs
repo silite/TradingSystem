@@ -13,7 +13,6 @@ pub fn init_portfolio(engine_id: Uuid, market: Market) -> MetaPortfolio {
         .open_position(Default::default())
         .freezed_position(Default::default())
         .exited_position(Default::default())
-        .update_ms(Default::default())
         .build()
         .expect("init portfolio error.")
 }
