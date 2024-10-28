@@ -140,12 +140,12 @@ impl StrategyExt for MacdStrategy {
         let (price, atr) = if matches!(side, Side::Buy) {
             (
                 Decimal::from_f64(market_data.high).unwrap(),
-                (indicators.atr.0 * config.atr_scaling, indicators.atr.1),
+                (indicators.atr.1 * config.atr_scaling, indicators.atr.0),
             )
         } else {
             (
                 Decimal::from_f64(market_data.low).unwrap(),
-                (indicators.atr.1 * config.atr_scaling, indicators.atr.0),
+                (indicators.atr.0 * config.atr_scaling, indicators.atr.1),
             )
         };
 

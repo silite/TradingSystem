@@ -51,7 +51,7 @@ derive_builder      = { workspace = true }
 crossbeam           = { workspace = true }
 ftlog               = { workspace = true }
 rust_decimal        = { workspace = true }
-rust_decimal_macros = { workspace = true }
+rust_decimal_macros.workspace = true
 engine              = { path = "engine" }
 conf                = { path = "conf" }
 protocol            = { path = "protocol" }
