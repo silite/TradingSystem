@@ -4,7 +4,7 @@ use clap::Parser;
 use serde::{Deserialize, Serialize};
 
 #[derive(Parser, Debug)]
-#[command(long_about = None, ignore_errors = true, name="TradingSystem", author="rongjiale", version="0.0.1")]
+#[command(long_about = None, ignore_errors = true, name="TradingSystem", author="silite", version="0.0.1")]
 struct Cli {
     #[arg(
         short = 'c',
