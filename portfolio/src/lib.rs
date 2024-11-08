@@ -36,8 +36,6 @@ pub struct MetaPortfolio {
     freezed_position: Vec<MetaPosition>,
     /// 退出交易仓位
     exited_position: Vec<MetaPosition>,
-    /// 手续费率
-    commission_rate: Decimal,
     // 最后更新时间，暂时无用
     // update_ms: u64,
 }

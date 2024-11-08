@@ -1,6 +1,7 @@
 use std::ops::{Add, Sub};
 
-use protocol::portfolio::amount::Amount;
+use protocol::{order::Order, portfolio::amount::Amount};
+use rust_decimal::Decimal;
 
 use crate::error::PortfolioError;
 
