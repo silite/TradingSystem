@@ -3,8 +3,6 @@
 #![allow(unused_imports)]
 #![feature(let_chains)]
 
-mod machine;
-
 use std::{
     collections::VecDeque,
     marker::PhantomData,
@@ -114,6 +112,8 @@ where
                                 ftlog::error!("[Trade Event Error] OrderNew error. {}", err);
                                 continue;
                             }
+                        } else {
+                            // TODO 处理市价
                         }
 
                         // 下单
@@ -142,19 +142,27 @@ where
                                     // unwrap一定成功
                                     self.portfolio.diff_available_balance(amount).unwrap();
                                 }
+                            } else {
+                                // TODO 处理市价
                             }
                         }
                         OrderResponse::OrderError(order) => {
                             // 买入失败回滚资金，卖出不动
-                            if let Some(price) = order.price
-                                && matches!(order.side, Side::Buy)
-                            {
-                                let amount = price * order.volume;
-                                if let Err(err) = self.portfolio.diff_open_freezed_balance(-amount)
-                                {
-                                    ftlog::error!("[Trade Event Error] OrderNew error. {}", err);
-                                    continue;
+                            if let Some(price) = order.price {
+                                if matches!(order.side, Side::Buy) {
+                                    let amount = price * order.volume;
+                                    if let Err(err) =
+                                        self.portfolio.diff_open_freezed_balance(-amount)
+                                    {
+                                        ftlog::error!(
+                                            "[Trade Event Error] OrderNew error. {}",
+                                            err
+                                        );
+                                        continue;
+                                    }
                                 }
+                            } else {
+                                // TODO 处理市价
                             }
                         }
                     },
