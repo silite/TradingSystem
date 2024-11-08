@@ -6,7 +6,12 @@ use serde::{Deserialize, Serialize};
 #[derive(Parser, Debug)]
 #[command(long_about = None, ignore_errors = true, name="TradingSystem", author="rongjiale", version="0.0.1")]
 struct Cli {
-    #[arg(long, required = true)]
+    #[arg(
+        short = 'c',
+        long = "config",
+        default_value = concat!(env!("CARGO_MANIFEST_DIR"), "/dev.toml"),
+        help = "Path to configuration file"
+    )]
     config: String,
 }
 
@@ -17,19 +22,10 @@ pub struct Config {
 }
 
 fn init_config() -> anyhow::Result<Config> {
-    #[allow(unused_variables)]
     let load_settings = || {
         let cli: Cli = Cli::parse();
         let mut settings = config::Config::builder();
         settings = settings.add_source(config::File::with_name(&cli.config));
-        settings
-    };
-    #[cfg(feature = "dev")]
-    let load_settings = || {
-        let mut settings = config::Config::builder();
-        settings = settings.add_source(config::File::with_name(
-            "/Users/siliterong/Project/rust/TradingSystem/conf/dev.toml",
-        ));
         settings
     };
     let settings = load_settings();
